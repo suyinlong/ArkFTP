@@ -20,7 +20,6 @@ import javax.swing.JOptionPane;
 public class ConnectLogDialog extends JDialog
 {
 	private JTextArea ConnectLogJTA;
-	private Color DialogBackground = new Color(191, 219,255);
 
 	public ConnectLogDialog(final MainFrame parent)
 	{
@@ -29,7 +28,7 @@ public class ConnectLogDialog extends JDialog
 		this.setSize(520, 360);
 		this.setResizable(false);
 
-		UIManager.put("OptionPane.background", DialogBackground);
+		UIManager.put("OptionPane.background", ResourceTable.colorDialogBackground);
 
 		Box MainBox = Box.createVerticalBox();
 
@@ -39,7 +38,7 @@ public class ConnectLogDialog extends JDialog
 
 		ConnectLogJTA = new JTextArea();
 		UpdateInfo(parent);
-		ConnectLogJTA.setBackground(DialogBackground);
+		ConnectLogJTA.setBackground(ResourceTable.colorDialogBackground);
 		ConnectLogJTA.setRows(10);
 		ConnectLogJTA.setLineWrap(true);
 		JScrollPane ConnectLogJSP = new JScrollPane(ConnectLogJTA);

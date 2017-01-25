@@ -68,8 +68,8 @@ public class ServerManagerDialog extends JDialog
 		westPanel.add(list_scroll, BorderLayout.CENTER);
 		westPanel.setPreferredSize(new Dimension(240, 247));
 
-		Border border1 = BorderFactory.createLineBorder(Color.BLUE);
-		westPanel.setBorder(border1);
+		//Border border1 = BorderFactory.createLineBorder(Color.BLUE);
+		//westPanel.setBorder(border1);
 		mainPanel.add(westPanel, BorderLayout.WEST);
 
 		JPanel eastPanel = new JPanel();
@@ -133,8 +133,8 @@ public class ServerManagerDialog extends JDialog
 		vbox.add(Box.createVerticalStrut(25));
 		vbox.add(panel4);
 		vbox.add(Box.createVerticalStrut(20));
-		Border border2 = BorderFactory.createLineBorder(Color.BLUE);
-		eastPanel.setBorder(border2);
+		//Border border2 = BorderFactory.createLineBorder(Color.BLUE);
+		//eastPanel.setBorder(border2);
 		mainPanel.add(eastPanel, BorderLayout.EAST);
 
 		JPanel southPanel = new JPanel();

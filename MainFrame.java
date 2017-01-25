@@ -19,6 +19,7 @@ import ArkFTP.bin.util.*;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
 import javax.swing.plaf.FontUIResource;
@@ -35,9 +36,6 @@ public class MainFrame extends JFrame
 	final int WIDTH;
 
 	public Font MainFrameFont = null;
-	public Color[] UsedColor = { new Color(191, 219,255),
-												new Color(222, 236, 255),
-												new Color(255, 181, 74) };
 	// set default font, color, version info
 
 	private ArkFTPWorker jw;
@@ -72,7 +70,7 @@ public class MainFrame extends JFrame
 		JPanel login2Menu_pnl = new JPanel();
 
 		JPanel QuickToolBar = new JPanel();
-		QuickToolBar.setBackground(UsedColor[0]);
+		QuickToolBar.setBackground(ResourceTable.colorToolbarBackground);
 
 		QuickToolBar.setLayout(new BoxLayout(QuickToolBar, BoxLayout.X_AXIS));
 
@@ -81,7 +79,7 @@ public class MainFrame extends JFrame
 		*/
 
 		JToolBar TaskBar = new JToolBar();
-		TaskBar.setBackground(UsedColor[0]);
+		TaskBar.setBackground(ResourceTable.colorToolbarBackground);
 		TaskBar.setMargin(new Insets(3, 3, 3, 3));
 		TaskBar.setBorderPainted(false);
 		TaskBar.setFloatable(false);
@@ -93,9 +91,14 @@ public class MainFrame extends JFrame
 													new JButton(StringTable.buttonMinimize, new ImageIcon(ResourceTable.iconToolbarMinimize)) };
 		for (int it = 0; it < TaskBarButton.length; it++)
 		{
-			TaskBarButton[it].setBackground(UsedColor[0]);
+			TaskBarButton[it].setBackground(ResourceTable.colorToolbarBackground);
+			TaskBarButton[it].setBorder(BorderFactory.createCompoundBorder(
+        		BorderFactory.createLineBorder(ResourceTable.colorToolbarFocusBorder, 1),
+        		BorderFactory.createEmptyBorder(1, 10, 1, 10)));
+			//TaskBarButton[it].setBorder(new LineBorder(ResourceTable.colorToolbarFocusBorder));
 			TaskBarButton[it].setBorderPainted(false);
 			TaskBarButton[it].setFocusPainted(false);
+
 			TaskBarButton[it].addMouseListener(new MouseAdapter()
 			{
 				public void mouseEntered(MouseEvent e)
@@ -162,7 +165,7 @@ public class MainFrame extends JFrame
 
 		// dropdown menu
 		menubar = new JMenuBar();
-		menubar.setBackground(UsedColor[0]);
+		menubar.setBackground(ResourceTable.colorMenuBackground);
 
 		JMenu menu1 = new JMenu(StringTable.menuFile);
 
@@ -283,10 +286,10 @@ public class MainFrame extends JFrame
 	private void InitStatePanel() {
 		// status bar
 		JPanel state_pnl = new JPanel();
-		state_pnl.setBackground(UsedColor[0]);
+		state_pnl.setBackground(ResourceTable.colorStateBarBackground);
 
 		JPanel left_pnl = new JPanel();
-		left_pnl.setBackground(UsedColor[0]);
+		left_pnl.setBackground(ResourceTable.colorStateBarBackground);
 		left_pnl.setLayout(new FlowLayout(FlowLayout.LEADING));
 		state_lb = new JLabel(StringTable.statusBarNoConnection);
 
@@ -295,7 +298,7 @@ public class MainFrame extends JFrame
 		left_pnl.add(new JSeparator(JSeparator.VERTICAL));
 
 		JPanel right_pnl = new JPanel();
-		right_pnl.setBackground(UsedColor[0]);
+		right_pnl.setBackground(ResourceTable.colorStateBarBackground);
 		right_pnl.setLayout(new FlowLayout(FlowLayout.LEFT));
 		jpb = new JProgressBar();
 		jpb.setBackground(Color.YELLOW);
@@ -323,7 +326,7 @@ public class MainFrame extends JFrame
 		panel1.setLayout(new BorderLayout());
 		server_jcb = new JComboBox();
 
-		server_jcb.setBackground(UsedColor[1]);
+		server_jcb.setBackground(ResourceTable.colorComboBoxBackground);
 		server_jcb.setForeground(Color.BLACK);
 
 		server_jcb.setPreferredSize(new Dimension(0, 20));
@@ -332,8 +335,10 @@ public class MainFrame extends JFrame
 
 		server_table.setRowHeight(24);
 		server_table.setFillsViewportHeight(true);
-		server_table.setBackground(Color.WHITE);
-		server_table.setSelectionBackground(UsedColor[2]);
+		server_table.setForeground(ResourceTable.colorTableForeground);
+		server_table.setBackground(ResourceTable.colorTableBackground);
+		server_table.setSelectionForeground(ResourceTable.colorTableSelectionForeground);
+		server_table.setSelectionBackground(ResourceTable.colorTableSelectionBackground);
 		server_table.setShowGrid(true);
 		server_table.setGridColor(Color.white);
 		server_table.setDragEnabled(false);
@@ -382,7 +387,7 @@ public class MainFrame extends JFrame
 		local_jcb.setSelectedIndex(i);
 
 		local_jcb.setForeground(Color.BLACK);
-		local_jcb.setBackground(UsedColor[1]);
+		local_jcb.setBackground(ResourceTable.colorComboBoxBackground);
 
 		local_jcb.setPreferredSize(new Dimension(0, 20));
 		local_table_model.addAllChildren(currentDir_file);
@@ -391,8 +396,10 @@ public class MainFrame extends JFrame
 
 		local_table.setRowHeight(24);
 		local_table.setFillsViewportHeight(true);
-		local_table.setBackground(Color.WHITE);
-		local_table.setSelectionBackground(UsedColor[2]);
+		local_table.setForeground(ResourceTable.colorTableForeground);
+		local_table.setBackground(ResourceTable.colorTableBackground);
+		local_table.setSelectionForeground(ResourceTable.colorTableSelectionForeground);
+		local_table.setSelectionBackground(ResourceTable.colorTableSelectionBackground);
 		local_table.setShowGrid(true);
 		local_table.setGridColor(Color.white);
 		local_table.setDragEnabled(false);
@@ -423,25 +430,27 @@ public class MainFrame extends JFrame
 
 		queue_table.setRowHeight(24);
 		queue_table.setFillsViewportHeight(true);
-		queue_table.setBackground(Color.WHITE);
-		queue_table.setSelectionBackground(UsedColor[2]);
+		queue_table.setForeground(ResourceTable.colorTableForeground);
+		queue_table.setBackground(ResourceTable.colorTableBackground);
+		queue_table.setSelectionForeground(ResourceTable.colorTableSelectionForeground);
+		queue_table.setSelectionBackground(ResourceTable.colorTableSelectionBackground);
 		queue_table.setShowGrid(true);
 		queue_table.setGridColor(Color.white);
 		queue_table.setDragEnabled(false);
 
 		queue_scroll = new JScrollPane(queue_table);
 		queue_scroll.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), StringTable.queueTableTitle));
-		queue_scroll.setBackground(UsedColor[0]);
+		queue_scroll.setBackground(ResourceTable.colorScrollBackground);
 		/**
 		 * message between server and client
 		 * */
 		printer_ta = new JTextArea(0, 40);
 		printer_ta.setEditable(false);
-		printer_ta.setBackground(UsedColor[0]);
+		printer_ta.setBackground(ResourceTable.colorLogBackground);
 		JScrollPane printer_scroll = new JScrollPane(printer_ta);
 
 
-		printer_scroll.setBackground(UsedColor[0]);
+		printer_scroll.setBackground(ResourceTable.colorScrollBackground);
 
 		printer_scroll.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), StringTable.logTextTitle));
 		JSplitPane bottom_split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, queue_scroll, printer_scroll);
@@ -1081,8 +1090,8 @@ public class MainFrame extends JFrame
 	    	}
 	    }
 
-		UIManager.put("TableHeader.background", UsedColor[0]);
-		UIManager.put("Panel.background", UsedColor[0]);
+		UIManager.put("TableHeader.background", ResourceTable.colorTableHeaderBackground);
+		UIManager.put("Panel.background", ResourceTable.colorPanelBackground);
 
 		Toolkit kit = Toolkit.getDefaultToolkit();
 		Cursor ArkCursor = kit.createCustomCursor(new ImageIcon(ResourceTable.cursorPath).getImage(), new Point(0, 0), ResourceTable.cursorName);
@@ -1131,11 +1140,13 @@ public class MainFrame extends JFrame
 
 	public void ToolBarFocusGained(JButton ToolButton)
 	{
-		ToolButton.setBackground(UsedColor[2]);
+		ToolButton.setBackground(ResourceTable.colorToolbarFocusBackground);
+		ToolButton.setBorderPainted(true);
 	}
 	public void ToolBarFocusLost(JButton ToolButton)
 	{
-		ToolButton.setBackground(UsedColor[0]);
+		ToolButton.setBackground(ResourceTable.colorToolbarBackground);
+		ToolButton.setBorderPainted(false);
 	}
 	public void InitTrayFunction()
     {

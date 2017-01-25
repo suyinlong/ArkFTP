@@ -2,7 +2,7 @@
 * @Author: Yinlong Su
 * @Date:   2017-01-25 09:12:32
 * @Last Modified by:   Yinlong Su
-* @Last Modified time: 2017-01-25 13:58:04
+* @Last Modified time: 2017-01-25 16:16:23
 */
 
 package ArkFTP.bin.ui;
@@ -16,7 +16,24 @@ public class ResourceTable {
     public final static String cursorName = "Arror";
     public final static String cursorPath = "ArkFTP/res/Arrow.png";
 
-    public final static Color[] UsedColor = {new Color(191, 219,255), new Color(222, 236, 255), new Color(255, 181, 74)};
+    public final static Color colorPanelBackground = new Color(240, 240, 240);
+    public final static Color colorTableBackground = new Color(255, 255, 255);
+    public final static Color colorTableForeground = new Color(0, 0, 0);
+    public final static Color colorTableHeaderBackground = new Color(252, 252, 252);
+    public final static Color colorTableSelectionBackground = new Color(51, 153, 255);
+    public final static Color colorTableSelectionForeground = new Color(255, 255, 255);
+    public final static Color colorComboBoxBackground = new Color(255, 255, 255);
+    public final static Color colorLogBackground = new Color(255, 255, 255);
+    public final static Color colorMenuBackground = new Color(240, 240, 240);
+    public final static Color colorToolbarBackground = new Color(240, 240, 240);
+    public final static Color colorToolbarFocusBackground = new Color(218, 235, 252);
+    public final static Color colorToolbarFocusBorder = new Color(51, 153, 255);
+    public final static Color colorStateBarBackground = new Color(255, 255, 255);
+    public final static Color colorDialogBackground = new Color(240, 240, 240);
+    public final static Color colorButtonBackground = new Color(229, 229, 229);
+    public final static Color colorScrollBackground = new Color(255, 255, 255);
+    public final static Color colorFieldBackground = new Color(240, 240, 240);
+    public final static Color colorFieldFocusBackground = new Color(255, 255, 255);
 
     public final static String iconTray = "/ArkFTP/res/MainIcon.png";
 

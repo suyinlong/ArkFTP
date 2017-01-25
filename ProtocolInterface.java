@@ -22,9 +22,8 @@ import javax.swing.SwingUtilities;
 /** **************************
 ** ArkFTP Protocol Interface
 ** Build 0712
-**   用于实现JFTP的协议接口，
-**   处理用户FTP命令（如下列出）
-** 	 [Access Commands]: 
+**
+** 	 [Access Commands]:
 **       USER PASS ACCT REIN QUIT ABOR
 **   [File Menagement Commands]:
 **       CWD CDUP DELE LIST NLIST MKD PWD RMD RNFR RNTO SMNT
@@ -40,36 +39,36 @@ import javax.swing.SwingUtilities;
 public class ProtocolInterface
 {
 
-	// 只是指定一下PORT范围
-	final int PORT_LOW  = 0x1000; 
+	// port range
+	final int PORT_LOW  = 0x1000;
 	final int PORT_HIGH = 0x7FFF;
-	
+
 	enum TransType {APPEND, RETRANS};
-	
+
 	private TransType storType = TransType.RETRANS;
 	private TransType retrType = TransType.APPEND;
-	
-	private ServerSocket data_serversocket;	
+
+	private ServerSocket data_serversocket;
 	private Socket control_socket;
 	private Socket data_socket;
-	private Charset cset;	
-	private BufferedWriter control_bw;	
+	private Charset cset;
+	private BufferedWriter control_bw;
 	private BufferedReader control_br;
 
-	
+
 	public ProtocolInterface(String address_str, int Port) throws IOException
 	{
 		control_socket = new Socket(address_str, Port);
-		
+
 		cset = Charset.forName("GBK");
 		control_br = new BufferedReader(
 				new InputStreamReader(control_socket.getInputStream(), cset));
 		control_bw = new BufferedWriter(
 				new OutputStreamWriter(control_socket.getOutputStream(), cset));
-		// 获取服务器初始回复。
+		// get the first respond
 		String s = readRespond();
-		
-		// server没有ready
+
+		// server is not ready
 		if(!s.substring(0, 3).equals("220"))
 			throw new IOException("Server is not ready!");
 	}
@@ -77,27 +76,27 @@ public class ProtocolInterface
 	private String path;
 	private JLabel state_lb;
 	private JProgressBar jpb;
-	
+
 	private long file_size = 0;
-	
-	// 是否是Passive模式。
+
+	// is it passive mode
 	private boolean isPassive = true;
-	
-	// 向服务器发送一行命令
+
+	// send a command
 	private void sendRequest(String request) throws IOException
 	{
 		control_bw.write(request + '\r' + '\n');
 		control_bw.flush();
 	}
-	
+
 	/* ************************
-	** 工具函数,接受一次服务器反馈信息。
-	** 可能是多行的信息。
-	** 返回 从FTP服务器读取当前查询的响应字符串。
+	** read one respond
+	** could be multiple lines
+	** return the respond string
 	*/
 	private String readRespond() throws IOException
 	{
-		// 如果服务器反馈的流以"XXX-"开头，则阻塞读取直到出现"XXX "为止。
+		// if the respond stream starts with "XXX-", block, read until "XXX-" appears
 		boolean isMultiLine = false;
 		if (control_socket.isClosed())
 			throw new IOException("Server Disconnected!");
@@ -110,21 +109,21 @@ public class ProtocolInterface
 			do
 			{
 				str = control_br.readLine() + '\n';
-				result_str = result_str +  str; 
+				result_str = result_str +  str;
 			} while(!(str.length() >= 4 && str.substring(0, 3).equals(respond_no) && str.charAt(3) == ' '));
-		} 
-		// 读取服务器反馈以"XXX "开头的剩余部分。
+		}
+		// read the remaining
 		while (isMultiLine && control_br.ready())
 		{
 			str = control_br.readLine();
 			result_str = result_str +  str;
 		}
 		return result_str;
-		
+
 	}
-	
-	// 工具函数,发送并接受命令。
-    //如果5秒钟没有交互完，则关闭Socket，抛出IOException.
+
+	// send and receive command
+    // not finished > 5s, close socket and throws IOException
 
 	private String communicateCommands(String cmd_str) throws IOException
 	{
@@ -132,7 +131,7 @@ public class ProtocolInterface
 		String respond_str = readRespond();
 		return respond_str;
 	}
-	
+
 	private String doCommandAbort() throws IOException
 	{
 		this.sendRequest("ABOR");
@@ -149,20 +148,19 @@ public class ProtocolInterface
 		}
 		return this.readRespond();
 	}
-	// 发送客户端无副作用的命令，并接受服务器反馈。
+	// send no effective commands and get respond
 
 	private String doNoEffectiveCommands(String cmd_str) throws IOException
 	{
 		String s = this.communicateCommands(cmd_str);
 		return s;
 	}
-	
-	// 发送命令PORT [ip地址]，并且根据服务器反馈信息建立data_socket.
-	//端口生成范围为PORT_LOW 到 PORT_HIGH之间。
+
+	// create socket
 
 	private String doCommandPort() throws IOException
 	{
-		// 生成范围在 PORT_LOW 到 PORT_HIGH 之间的一个ServerSocket
+		// choose a port for ServerSocket
 		int port;
 		for (port = PORT_LOW; port < PORT_HIGH; port++)
 		{
@@ -176,15 +174,15 @@ public class ProtocolInterface
 			}
 			break;
 		}
-		
+
 		String command_PORT = control_socket.getLocalAddress().getHostAddress();
 		command_PORT = command_PORT.replace('.', ',');
-		command_PORT = "PORT " + command_PORT + ',' + Integer.toString(port/256, 10) 
+		command_PORT = "PORT " + command_PORT + ',' + Integer.toString(port/256, 10)
 		  			 + ',' + Integer.toString(port%256, 10);
-		return communicateCommands(command_PORT);		
+		return communicateCommands(command_PORT);
 	}
-	
-	// 发送命令PASV，并且根据服务器反馈信息建立data_socket.
+
+	// send cmd PASV and create socket
 	private String doCommandPasv() throws IOException
 	{
 		String respond_str = communicateCommands("PASV");
@@ -203,30 +201,30 @@ public class ProtocolInterface
 		}
 		return respond_str;
 	}
-	
+
 	private String doCommandStor(String cmd_str) throws IOException
 	{
 		long start_time = System.currentTimeMillis();
 		String respond_str;
-		// filename 是文件名，没有路径。
+		// filename contains only filename
 		String filename_str;
 		BufferedInputStream data_bis = null;
 		BufferedOutputStream data_bos = null;
-		
+
 		char seperator = File.separatorChar;
 		int i = cmd_str.substring(5).lastIndexOf(seperator);
 		if (i < 0)
 			filename_str = cmd_str.substring(5);
 		else
 			filename_str = cmd_str.substring(6 + i);
-		
+
 		File file = new File(cmd_str.substring(5));
 		data_bis = new BufferedInputStream(new FileInputStream(file));
-		
+
 		cmd_str = "STOR " + filename_str;
-		
+
 		doCommand("TYPE I");
-		// 建立data_socket
+		// create data_socket
 		if (!isPassive)
 		{
 			respond_str = doCommand("PORT");
@@ -252,14 +250,14 @@ public class ProtocolInterface
 				}
 			}
 		}
-		
+
 		try
 		{
 			file_size = file.length();
 			data_bos = new BufferedOutputStream(data_socket.getOutputStream());
 			long hasRead = 0;
 			int read = 0;
-			
+
 			byte[] buffer = new byte[1000000];
 			int readPerSecond = 0;
 			long old_time = start_time;
@@ -269,7 +267,7 @@ public class ProtocolInterface
 				read = data_bis.read(buffer, 0, buffer.length);
 				hasRead += read;
 				readPerSecond += read;
-			
+
 				if (read == -1)
 					break;
 				data_bos.write(buffer, 0, read);
@@ -278,8 +276,8 @@ public class ProtocolInterface
 				if (eclipsed_time / 1000 >= 1)
 				{
 					long speed = (long)readPerSecond * 1000 / (long) eclipsed_time;
-					old_time = current_time;					
-					// 更新速度
+					old_time = current_time;
+					// update speed
 					String speed_str;
 					if (speed < 1000)
 						speed_str = Long.toString(speed) + "B/s";
@@ -287,14 +285,14 @@ public class ProtocolInterface
 						speed_str = Long.toString(speed/1000) + '.' + Long.toString( (speed%1000)/10 ) + "KB/s";
 					else
 						speed_str = Long.toString(speed/1000000) + '.' + Long.toString( (speed%1000000) /10000) + "MB/s";
-					// 更新进度条
+					// update state bar
 					if (file_size > 0)
 					{
 						final int cnt = (int)( (hasRead * 100) / file_size);
 						state_str = state_str.concat("(" + cnt + "%)");
 						long passed_seconds = (current_time - start_time)/1000;
 						long expected_seconds = (file_size - hasRead) / speed + 1;
-						state_str = state_str.concat("   已耗时：" + passed_seconds + "秒  仍需要：" + expected_seconds + "秒");
+						state_str = state_str.concat("   Elapsed Time: " + passed_seconds + "s  Time left: " + expected_seconds + "s");
 						final String stateDisplay_str = state_str;
 						final String speedDisplay_str = speed_str;
 						if (jpb != null && state_lb != null)
@@ -311,8 +309,8 @@ public class ProtocolInterface
 								}
 							};
 							SwingUtilities.invokeLater(runnable);
-						}							
-					}					
+						}
+					}
 					readPerSecond = 0;
 				}
 			}
@@ -336,7 +334,7 @@ public class ProtocolInterface
 				SwingUtilities.invokeLater(runnable);
 			}
 
-			// 清理
+			// clean
 			try
 			{
 				if (data_serversocket != null && !data_serversocket.isClosed())
@@ -346,7 +344,7 @@ public class ProtocolInterface
 			{
 				e.printStackTrace();
 			}
-			
+
 			try
 			{
 				if (data_socket != null && !data_socket.isClosed())
@@ -356,7 +354,7 @@ public class ProtocolInterface
 			{
 				e.printStackTrace();
 			}
-			
+
 			try
 			{
 				data_bos.close();
@@ -365,7 +363,7 @@ public class ProtocolInterface
 			{
 				e.printStackTrace();
 			}
-			
+
 			try
 			{
 				data_bis.close();
@@ -374,51 +372,51 @@ public class ProtocolInterface
 			{
 				e.printStackTrace();
 			}
-		}	
-		
+		}
+
 		respond_str = readRespond();
 		return respond_str;
 	}
-	
+
 	private String doCommandRetr(String cmd_str) throws IOException
 	{
 		long start_time = System.currentTimeMillis();
 		String respond_str;
 		String filename_str;
 		BufferedInputStream data_bis = null;
-		// 应该在创建data套接口之前先检查是否能够创建文件输出流。
-		// 如果创建文件输出流时发生了异常，则应该区别于data线路的异常，应该上抛。
+		// check if file can be output by stream before creating data socket
+		// if error happers, throws IOException
 		BufferedOutputStream data_bos = null;
-		
-		// filename_str对应本地文件绝对路径，调用Retr需要先设置Path
+
+		// filename_str = local file absolute path, set path before retr
 		int i = cmd_str.substring(5).lastIndexOf('/');
 		if (i < 0)
 			filename_str = cmd_str.substring(5);
 		else
-			filename_str = cmd_str.substring(6 + i);		
+			filename_str = cmd_str.substring(6 + i);
 		if (path != null)
 			filename_str = path + filename_str;
-		
+
 		//doCommand("HELP");
 		respond_str = doCommand("SIZE " + cmd_str.substring(5));
 		communicateCommands("STAT " + cmd_str.substring(5));
 		if (respond_str.substring(0, 3).equals("213"))
 			file_size = Long.parseLong(respond_str.substring(4, respond_str.length() - 1));
-		
+
 		doCommand("TYPE I");
-		
+
 		File file = new File(filename_str);
 		if (file.exists() && retrType == TransType.APPEND)
-		{ 
+		{
 			data_bos = new BufferedOutputStream(new FileOutputStream(file, true));
-			// 在ArkFTPWorker中确保服务器文件长度要大于本地文件长度。
+			// server file size > local size
 			communicateCommands("REST " + Long.toString(file.length()));
 			file_size = file_size - file.length();
 		}
-		else 
+		else
 			data_bos = new BufferedOutputStream(new FileOutputStream(file, false));
-		
-		// 建立data_socket
+
+		// create data_socket
 		if (!isPassive)
 		{
 			respond_str = doCommand("PORT");
@@ -444,14 +442,14 @@ public class ProtocolInterface
 				}
 			}
 		}
-		
+
 		try
 		{
 			long hasRead = 0;
 			int read = 0;
 			this.state_lb.setText(cmd_str);
 			data_bis = new BufferedInputStream(data_socket.getInputStream());
-			
+
 			byte[] buffer = new byte[1000000];
 			int readPerSecond = 0;
 			long old_time = start_time;
@@ -461,7 +459,7 @@ public class ProtocolInterface
 				read = data_bis.read(buffer, 0, buffer.length);
 				hasRead += read;
 				readPerSecond += read;
-			
+
 				if (read == -1)
 					break;
 				data_bos.write(buffer, 0, read);
@@ -470,8 +468,8 @@ public class ProtocolInterface
 				if (eclipsed_time / 1000 >= 1)
 				{
 					long speed = (long)readPerSecond * 1000 / (long) eclipsed_time;
-					old_time = current_time;					
-					// 更新速度
+					old_time = current_time;
+					// update speed
 					String speed_str;
 					if (speed < 1000)
 						speed_str = Long.toString(speed) + "B/s";
@@ -479,14 +477,14 @@ public class ProtocolInterface
 						speed_str = Long.toString(speed/1000) + '.' + Long.toString( (speed%1000)/10 ) + "KB/s";
 					else
 						speed_str = Long.toString(speed/1000000) + '.' + Long.toString( (speed%1000000) /10000) + "MB/s";
-					// 更新进度条
+					// update state bar
 					if (file_size > 0)
 					{
 						final int cnt = (int)( (hasRead * 100) / file_size);
 						state_str = state_str.concat("(" + cnt + "%)");
 						long passed_seconds = (current_time - start_time)/1000;
 						long expected_seconds = (file_size - hasRead) / speed + 1;
-						state_str = state_str.concat("   已耗时：" + passed_seconds + "秒  仍需要：" + expected_seconds + "秒");
+						state_str = state_str.concat("   Elapsed Time: " + passed_seconds + "s  Time left: " + expected_seconds + "s");
 						final String stateDisplay_str = state_str;
 						final String speedDisplay_str = speed_str;
 						if (jpb != null && state_lb != null)
@@ -503,9 +501,9 @@ public class ProtocolInterface
 								}
 							};
 							SwingUtilities.invokeLater(runnable);
-						}							
-					}					
-				
+						}
+					}
+
 					readPerSecond = 0;
 				}
 			}
@@ -530,7 +528,7 @@ public class ProtocolInterface
 			}
 
 			file_size = 0;
-			// 清理
+			// clean
 			try
 			{
 				if (data_serversocket != null && !data_serversocket.isClosed())
@@ -540,7 +538,7 @@ public class ProtocolInterface
 			{
 				e.printStackTrace();
 			}
-			
+
 			try
 			{
 				if (data_socket != null && !data_socket.isClosed())
@@ -550,7 +548,7 @@ public class ProtocolInterface
 			{
 				e.printStackTrace();
 			}
-			
+
 			try
 			{
 				data_bos.close();
@@ -559,7 +557,7 @@ public class ProtocolInterface
 			{
 				e.printStackTrace();
 			}
-			
+
 			try
 			{
 				data_bis.close();
@@ -568,12 +566,12 @@ public class ProtocolInterface
 			{
 				e.printStackTrace();
 			}
-		}	
-		
+		}
+
 		respond_str = readRespond();
 		return respond_str;
 	}
-	
+
 
 	class ListHelper extends Thread
 	{
@@ -583,7 +581,7 @@ public class ProtocolInterface
 			this.strArray = strArray;
 		}
 		public void run()
-		{	
+		{
 			BufferedReader data_br = null;
 			try
 			{
@@ -591,7 +589,7 @@ public class ProtocolInterface
 				{
 					data_serversocket.setSoTimeout(1000);
 					data_socket = data_serversocket.accept();
-				} 
+				}
 				data_br = new BufferedReader(new InputStreamReader(data_socket.getInputStream(), cset));
 				long start_time = System.currentTimeMillis();
 				String line;
@@ -600,7 +598,7 @@ public class ProtocolInterface
 				while (true)
 				{
 					line = data_br.readLine();
-					// 如果line为null，则说明读到了EOF。
+					// line == NULL, EOF
 					if (line == null)
 						break;
 					lines_str += line + '\n';
@@ -613,7 +611,7 @@ public class ProtocolInterface
 			}
 			catch (InterruptedIOException e)
 			{
-				// 连接超时，退出。
+				// timeout
 			}
 			catch (IOException e)
 			{
@@ -622,7 +620,7 @@ public class ProtocolInterface
 			finally
 			{
 				try
-				{						
+				{
 					if (data_serversocket != null && !data_serversocket.isClosed())
 						data_serversocket.close();
 				}
@@ -630,7 +628,7 @@ public class ProtocolInterface
 				{
 					e.printStackTrace();
 				}
-				
+
 				try
 				{
 					if (data_socket != null && !data_socket.isClosed())
@@ -640,7 +638,7 @@ public class ProtocolInterface
 				{
 					e.printStackTrace();
 				}
-				
+
 				try
 				{
 					if (data_br != null)
@@ -653,13 +651,13 @@ public class ProtocolInterface
 			}
 		}
 	}
-	
+
 
 	private String doCommandList(String cmd_str) throws IOException
 	{
 		String respond_str;
 		doCommand("TYPE A");
-		
+
 		String[] strArray = new String[1];
 		strArray[0] = null;
 		Thread listhelper_thread = new ListHelper(strArray);
@@ -669,7 +667,7 @@ public class ProtocolInterface
 		{
 			return respond_str;
 		}
-		
+
 		try
 		{
 			listhelper_thread.join();
@@ -678,10 +676,10 @@ public class ProtocolInterface
 		{
 			e.printStackTrace();
 		}
-		
+
 		if (strArray[0] == null)
 			return null;
-		
+
 		String confirm_str = readRespond();
 
 		if (!confirm_str.substring(0, 3).equals("226"))
@@ -693,7 +691,7 @@ public class ProtocolInterface
 			return confirm_str + strArray[0];
 		}
 	}
-	// 工具函数，发送QUIT并且清理。
+	// send quit and clean
 	private String doCommandQuit() throws IOException
 	{
 		String s = this.communicateCommands("QUIT");
@@ -701,67 +699,67 @@ public class ProtocolInterface
 		this.close();
 		return s;
 	}
-	
+
 	public boolean isServerColsed()
 	{
 		return control_socket.isClosed();
 	}
-	
+
 	public String hasRespondofServerTerminate() throws IOException
 	{
 		if (control_br.ready())
 			return this.readRespond();
 		return null;
 	}
-	
+
 	public void setStateLabel(JLabel state_lb)
 	{
 		this.state_lb = state_lb;
 	}
-	
+
 	public void setProgressBar(JProgressBar jpb)
 	{
 		this.jpb = jpb;
 	}
-	
+
 	public void setPath(String path)
 	{
 		if (path != null)
 			this.path = path;
 	}
-	
+
 	public void setPassive()
 	{
 		isPassive = true;
 	}
-	
+
 	public void setFileLen(long file_size)
 	{
 		this.file_size = file_size;
 	}
-	
+
 	public void setNonPassive()
 	{
 		isPassive = false;
 	}
-	
+
 	public String doCommand(String cmdline_str) throws IOException
 	{
 		String respond_str = "000 ";
-		Vector<String> v = new Vector<String>(); 
+		Vector<String> v = new Vector<String>();
 		StringTokenizer st = new StringTokenizer(cmdline_str);
 		if (st.hasMoreTokens())
 			v.add(st.nextToken());
 		if (v.size() == 0)
 			return respond_str;
-		
+
 		if (v.elementAt(0).equals("QUIT"))
 		{
 			respond_str = doCommandQuit();
 		}
 		else if (v.elementAt(0).equals("LIST") || v.elementAt(0).equals("NLIST"))
 		{
-			respond_str = doCommandList(cmdline_str);			
+			respond_str = doCommandList(cmdline_str);
 		}
 		else if (v.elementAt(0).equals("PORT"))
 		{
@@ -788,15 +786,15 @@ public class ProtocolInterface
 				|| v.elementAt(0).equals("CDUP") || v.elementAt(0).equals("DELE") || v.elementAt(0).equals("MKD")
 				|| v.elementAt(0).equals("RMD")  || v.elementAt(0).equals("RNFR") || v.elementAt(0).equals("RNTO")
 				|| v.elementAt(0).equals("TYPE") || v.elementAt(0).equals("STRU") || v.elementAt(0).equals("NOOP")
-				|| v.elementAt(0).equals("SIZE") || v.elementAt(0).equals("ABOR")) 
+				|| v.elementAt(0).equals("SIZE") || v.elementAt(0).equals("ABOR"))
 		{
 			respond_str = doNoEffectiveCommands(cmdline_str);
 		}
 		return respond_str;
 	}
-	
+
 	public void close()
-	{	
+	{
 		try
 		{
 			this.sendRequest("QUIT");
@@ -816,7 +814,7 @@ public class ProtocolInterface
 		{
 			e.printStackTrace();
 		}
-		
+
 		try
 		{
 			if (control_bw != null)

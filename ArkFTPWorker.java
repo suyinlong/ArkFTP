@@ -348,7 +348,7 @@ public class ArkFTPWorker extends Thread
 	// main function
 	public void run()
 	{
-		mf.setForeground(Color.BLUE);
+		//mf.setForeground(Color.BLUE);
 		mf.getLogTextArea().setText("");
 		try
 		{
@@ -888,7 +888,7 @@ public class ArkFTPWorker extends Thread
 				mf.getQueueTableModel().removeAllRows();
 				mf.getServerComboBox().removeAllItems();
 				mf.getServerComboBox().setEnabled(false);
-				mf.getStateLabel().setText("(连接已断开)");
+				mf.getStateLabel().setText("(Disconnected)");
 				mf.getLogTextArea().append("Disconnect.\n");
 				mf.getLogTextArea().setCaretPosition(mf.getLogTextArea().getText().length());
 				mf.setEnabled(true);

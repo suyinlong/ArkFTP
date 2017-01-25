@@ -31,14 +31,7 @@ public class AlignmentRenderer extends DefaultTableCellRenderer
 	    	setForeground(table.getSelectionForeground());
 	    }
 	    else {
-	    	if (row % 2 == 0)
-	    	{
-  				this.setBackground(Color.WHITE);
-   			}
-   			else
-   			{
-    			this.setBackground(new Color(222, 236, 255));
-  			}
+	    	setBackground(table.getBackground());
 	    	setForeground(table.getForeground());
 	    }
 	    setEnabled(table.isEnabled());

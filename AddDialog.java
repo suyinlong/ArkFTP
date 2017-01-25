@@ -25,7 +25,7 @@ public class AddDialog extends JDialog
 		panel1.add(jtf);
 		JPanel panel2 = new JPanel();
 		final JButton ok = new JButton(StringTable.buttonOK);
-		ok.setPreferredSize(new Dimension(60, 20));
+		ok.setPreferredSize(new Dimension(80, 20));
 		ok.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
@@ -40,7 +40,7 @@ public class AddDialog extends JDialog
 			}
 		});
 		final JButton cancel = new JButton(StringTable.buttonCancel);
-		cancel.setPreferredSize(new Dimension(60, 20));
+		cancel.setPreferredSize(new Dimension(80, 20));
 		cancel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
@@ -56,7 +56,7 @@ public class AddDialog extends JDialog
 
 		this.setSize(250, 120);
 		this.setResizable(false);
-		this.setLocation(smd.getWidth()/2 - this.getWidth()/2 + smd.getLocation().x,
-						 smd.getWidth()/2 - this.getWidth()/2 + smd.getLocation().y);
+		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+		this.setLocation(d.width/2 - this.getWidth()/2, d.height/2 - this.getWidth()/2);
 	}
 }

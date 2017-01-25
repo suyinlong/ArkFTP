@@ -11,8 +11,6 @@ import java.util.Vector;
 
 import javax.swing.DefaultComboBoxModel;
 
-
-
 public class LocalComboBoxModel extends DefaultComboBoxModel
 {
 	public LocalComboBoxModel(Vector<String> v)

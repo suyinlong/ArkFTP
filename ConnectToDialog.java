@@ -21,8 +21,6 @@ public class ConnectToDialog extends JDialog
 {
 	private JTextField AddressJTF, PortJTF, UsernameJTF;
 	private JPasswordField PasswordJPF;
-	private Color[] UsedColor = { new Color(222, 236, 255),
-												new Color(255, 255, 255) };
 
 	public ConnectToDialog(final MainFrame owner)
 	{
@@ -32,8 +30,8 @@ public class ConnectToDialog extends JDialog
 		this.setResizable(false);
 		this.setLayout(null);
 
-		UIManager.put("TextField.background", UsedColor[0]);
-		UIManager.put("PasswordField.background", UsedColor[0]);
+		UIManager.put("TextField.background", ResourceTable.colorFieldBackground);
+		UIManager.put("PasswordField.background", ResourceTable.colorFieldBackground);
 
 		JLabel CTInfoLabel1 = new JLabel(StringTable.dialogConnectToQuickConnect);
 		CTInfoLabel1.setBounds(20, 30, 200, 20);
@@ -151,10 +149,10 @@ public class ConnectToDialog extends JDialog
 	}
 	public void TextFieldFocusGained(JComponent TF)
 	{
-		TF.setBackground(UsedColor[1]);
+		TF.setBackground(ResourceTable.colorFieldFocusBackground);
 	}
 	public void TextFieldFocusLost(JComponent TF)
 	{
-		TF.setBackground(UsedColor[0]);
+		TF.setBackground(ResourceTable.colorFieldBackground);
 	}
 }
