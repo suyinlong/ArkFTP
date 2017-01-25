@@ -1,7 +1,7 @@
 /* ***********************
 ** AboutDialog.java
 ** ***********************
-** 关于对话框
+** About Dialog
 ** Build 0718
 ** **********************/
 
@@ -26,29 +26,26 @@ public class AboutDialog extends JDialog
 	int Playtime;
 	int DialogX, DialogY, DialogW, DialogH;
 	int ScreenW, ScreenH;
-	
+
 	public AboutDialog(JFrame owner)
 	{
-		super(owner, "关于 ArkFTP", true);
-				
+		super(owner, StringTable.dialogAboutTitle, true);
+
 		this.setLayout(null);
-		
-		JLabel TitleName = new JLabel("ArkFTP");
+
+		JLabel TitleName = new JLabel(StringTable.projectName);
 		TitleName.setBounds(10, 20, 200, 25);
 		this.add(TitleName);
-		
-		String[] AboutInfoString = { "A FTP Client compiled by Java",
-													"版本 1.0 (Build 0719)",
-													"作者：苏寅龙" };
-		JLabel[] AboutInfoLabel = new JLabel[AboutInfoString.length];;
-		for (int i = 0; i < AboutInfoString.length; i++)
+
+		JLabel[] AboutInfoLabel = new JLabel[StringTable.dialogAboutInfo.length];;
+		for (int i = 0; i < StringTable.dialogAboutInfo.length; i++)
 		{
-			AboutInfoLabel[i] = new JLabel(AboutInfoString[i]);
+			AboutInfoLabel[i] = new JLabel(StringTable.dialogAboutInfo[i]);
 			AboutInfoLabel[i].setBounds(10, 70 + 20 * i, 230, 18);
 			this.add(AboutInfoLabel[i]);
 		}
-		
-		JButton ok = new JButton("确定");
+
+		JButton ok = new JButton(StringTable.buttonOK);
 		ok.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
@@ -57,16 +54,16 @@ public class AboutDialog extends JDialog
 		});
 		ok.setBounds(75, 150, 70, 20);
 		this.add(ok);
-		
+
 		DialogW = 250; 	DialogH = 270;
 		setSize(DialogW, DialogH);
-		
+
 		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
 		ScreenW = d.width; ScreenH = d.height;
 		DialogX = ScreenW / 2 - DialogW / 2;
 		DialogY = ScreenH / 2 - DialogH / 2;
 		this.setLocation( - DialogW, - DialogH);
-		
+
 	}
 	public void StartAnimation()
 	{
@@ -85,5 +82,5 @@ public class AboutDialog extends JDialog
 		AnimationTimer.setCoalesce(true);
 		AnimationTimer.start();
 	}
-	
+
 }

@@ -1,10 +1,10 @@
 /* ***********************
 ** ArkFTPWorker.java
 ** ***********************
-** ArkFTP的FTP服务主线程
+** Main thread of FTP service
 ** Build 0716
-** 07-14 实现日志自动滚屏功能
-** 07-16 改进了滚屏方法...
+** 07-14 Implemented auto scroll of log
+** 07-16 Improved scrolling
 ** **********************/
 
 package ArkFTP.bin.main;
@@ -27,29 +27,29 @@ import ArkFTP.bin.util.TaskQueue;
 
 public class ArkFTPWorker extends Thread
 {
-// 声明一系列的私有成员域
+// declare some private members
 	private ProtocolInterface pi;
-	
+
 	private MainFrame mf;
-	
+
 	private String currentDir_str;
-	
-	private boolean isPassive = true;	
-	private boolean isNoop = false;	
-	private int idleSeconds = 0;	
+
+	private boolean isPassive = true;
+	private boolean isNoop = false;
+	private int idleSeconds = 0;
 	private boolean isContinue = true;
-	
+
 	private TaskQueue tq = null;
-	
-	private String user_str;	
-	private String pass_str;	
-	private String address_str;	
+
+	private String user_str;
+	private String pass_str;
+	private String address_str;
 	private int port;
-	
+
 	final private int DELAY_TIME = 5000;
-	
-	// doCommandandLog方法用于提交命令并写入通迅记录
-	
+
+	// doCommandandLog: submit commands and write to log
+
 	private String doCommandandLog(String cmd_str) throws IOException
 	{
 		Timer timer = new Timer();
@@ -72,12 +72,12 @@ public class ArkFTPWorker extends Thread
 		timer.cancel();
 		JTextArea ta = mf.getLogTextArea();
 		ta.setForeground(Color.BLACK);
-		
+
 		if (cmd_str.length() > 3 && cmd_str.substring(0, 4).equals("PASS"))
 			ta.append("PASS ******\n");
 		else
 			ta.append(cmd_str + '\n');
-		
+
 		ta.setCaretPosition(ta.getText().length());
 		ta.setForeground(Color.BLUE);
 		if(respond_str.substring(0, 3).equals("226"))
@@ -85,28 +85,28 @@ public class ArkFTPWorker extends Thread
 			int n = respond_str.indexOf('\n');
 			ta.append(respond_str.substring(0, n+1));
 		}
-		else			
+		else
 			ta.append(respond_str);
 
 		ta.setCaretPosition(ta.getText().length());
 		return respond_str;
 	}
-	
-	// insertDeleQueue 方法处理传输队列
-	
+
+	// insertDeleQueue: handle transmission queue 方法处理传输队列
+
 	private void insertDeleQueue(String dataofList_str, String DirAbsoluteName_str)
 	{
-		if (dataofList_str == null) 
+		if (dataofList_str == null)
 			return;
-		
+
 		String[] task;
 		Vector<String[]> task_v = new Vector<String[]>();
-		
+
 		int i = 0, j;
 		while( i < dataofList_str.length()) {
 			if ( (j = i + dataofList_str.substring(i).indexOf('\n')) == -1)
 				break;
-			
+
 			StringTokenizer stk = new StringTokenizer(dataofList_str.substring(i, j));
 			task = new String[2];
 			int count = stk.countTokens();
@@ -118,15 +118,15 @@ public class ArkFTPWorker extends Thread
 					isDir = true;
 					task[0] = "RRMD";
 				}
-				// 忽略4个不关心的属性
+				// ignore 4 attributes that I don't care about
 				for (int k = 0; k < 7; k++)
 					stk.nextToken();
-				
+
 				// Name
 				task[1] = stk.nextToken();
 				while(stk.hasMoreTokens())
 					task[1] += " " + stk.nextToken();
-				
+
 				if (!task[1].equals(".") && !task[1].equals(".."))
 				{
 					task[1] = DirAbsoluteName_str + task[1];
@@ -138,23 +138,23 @@ public class ArkFTPWorker extends Thread
 			}
 			i = j + 1;
 		}
-		
+
 		String[] last_task = {"RMD", DirAbsoluteName_str};
 		task_v.add(last_task);
 		tq.insertTasks(task_v);
 	}
-	
+
 	/**
-	 * 函数listFileAllStr()，用来获取指定服务器文件夹内所有文件的所有信息。
-	 * @param serverDir_str 服务器上的文件夹绝对目录
-	 * @return Vector<String[]> ： 其中Vector的每个元素是一个文件的全部属性<br>
-	 * 0  --->  权限属性
+	 * listFileAllStr() get the information of all files in the folder on the server
+	 * @param serverDir_str folder path
+	 * @return Vector<String[]> ： the attributes<br>
+	 * 0  --->  permission
 	 * 1  --->  ?
-	 * 2  --->  用户
-	 * 3  --->  组
-	 * 4  --->  大小
-	 * 5  --->  时间
-	 * 6  --->  文件名 
+	 * 2  --->  user
+	 * 3  --->  group
+	 * 4  --->  size
+	 * 5  --->  time
+	 * 6  --->  filename
 	 */
 	private Vector<String[]> listFileAllStr(String serverDir_str)
 	{
@@ -168,7 +168,7 @@ public class ArkFTPWorker extends Thread
 			e.printStackTrace();
 			this.close();
 		}
-		
+
 		if (dataofList_str == null || dataofList_str == "")
 			return null;
 		else
@@ -179,7 +179,7 @@ public class ArkFTPWorker extends Thread
 			{
 				if ( (j = i + dataofList_str.substring(i).indexOf('\n')) == -1)
 					break;
-				
+
 				StringTokenizer stk = new StringTokenizer(dataofList_str.substring(i, j));
 				int count = stk.countTokens();
 				if (count >= 9)
@@ -188,18 +188,18 @@ public class ArkFTPWorker extends Thread
 					boolean isDir = false;
 					for (int k = 0; k < 5; k++)
 						all_array[k] = stk.nextToken();
-					if (all_array[0].charAt(0) == 'd') 
+					if (all_array[0].charAt(0) == 'd')
 						isDir = true;
-					
+
 					all_array[5] = stk.nextToken();
 					for (int k = 0; k < 2; k++)
 						all_array[5] = all_array[5] + " " + stk.nextToken();
-					
+
 					// Name
 					String fileName_str = stk.nextToken();
 					while(stk.hasMoreTokens())
-						fileName_str += " " + stk.nextToken();					
-					
+						fileName_str += " " + stk.nextToken();
+
 					if (!fileName_str.equals(".") && !fileName_str.equals(".."))
 					{
 						if (isDir)
@@ -214,7 +214,7 @@ public class ArkFTPWorker extends Thread
 			return fileAll_v;
 		}
 	}
-	
+
 	private Vector<String> listFileNameStr(String serverDir_str)
 	{
 		String dataofList_str = null;
@@ -227,7 +227,7 @@ public class ArkFTPWorker extends Thread
 			e.printStackTrace();
 			this.close();
 		}
-		
+
 		if (dataofList_str == null || dataofList_str == "")
 			return null;
 		else
@@ -238,7 +238,7 @@ public class ArkFTPWorker extends Thread
 			{
 				if ( (j = i + dataofList_str.substring(i).indexOf('\n')) == -1)
 					break;
-				
+
 				StringTokenizer stk = new StringTokenizer(dataofList_str.substring(i, j));
 				int count = stk.countTokens();
 				if (count >= 9)
@@ -246,15 +246,15 @@ public class ArkFTPWorker extends Thread
 					boolean isDir = false;
 					if (stk.nextToken().charAt(0) == 'd')
 						isDir = true;
-					// 忽略7个不关心的属性
+					// ignore 7 attributes I don't care about
 					for (int k = 0; k < 7; k++)
 						stk.nextToken();
-					
+
 					// Name
 					String fileName_str = stk.nextToken();
 					while(stk.hasMoreTokens())
 						fileName_str += " " + stk.nextToken();
-					
+
 					if (!fileName_str.equals(".") && !fileName_str.equals(".."))
 					{
 						if (isDir)
@@ -266,10 +266,10 @@ public class ArkFTPWorker extends Thread
 				i = j + 1;
 			}
 			return fileNameStr_v;
-		}		
+		}
 	}
 
-// 刷新功能的实现
+// refresh
 	private void updateDir() throws IOException
 	{
 		String str = doCommandandLog("PWD");
@@ -282,16 +282,16 @@ public class ArkFTPWorker extends Thread
 				currentDir_str += '/';
 		}
 	}
-	
-	// 用于比较字串
-	
+
+	// compare strings
+
 	private boolean checkNo(String check_str, String no_str)
 	{
 		return check_str.substring(0, 3).equals(no_str);
 	}
-	
-	//向状态栏写入当前空闲时间
-	
+
+	// write current idle time to status bar
+
 	private void setStateIdleTime(int seconds)
 	{
 		int secs = seconds % 60;
@@ -302,25 +302,25 @@ public class ArkFTPWorker extends Thread
 			secs_str = "0" + secs_str;
 		if (mins < 10)
 			mins_str = "0" + mins_str;
-		mf.printState("空闲时间 (" + mins_str + ":" + secs_str + ")");
+		mf.printState("Idle (" + mins_str + ":" + secs_str + ")");
 	}
-	
-	// getCurrentDir 返回当前目录
-	
+
+	// getCurrentDir return current folder path
+
 	public String getCurrentDir()
 	{
 		return this.currentDir_str;
 	}
-	
-	// setTaskQueue 重设传输队列对象
-	
+
+	// setTaskQueue reset transmission object
+
 	public void setTaskQueue(TaskQueue tq)
 	{
 		this.tq = tq;
 	}
-	
-	// 构造方法
-	
+
+	// Constructor
+
 	public ArkFTPWorker(String address_str, int port, String user_str, String pass_str,  MainFrame mf, TaskQueue tq) throws IOException
 	{
 		super("ArkFTPWorker");
@@ -332,28 +332,28 @@ public class ArkFTPWorker extends Thread
 		this.tq = tq;
 		this.start();
 	}
-	
-	// 设定线程工作不再继续
+
+	// set the thread to stop
 	public synchronized void terminate()
 	{
 		isContinue = false;
 	}
-	
-	// 返回线程工作是否继续
+
+	// set the thread to start
 	public synchronized boolean isContinue()
 	{
 		return isContinue;
 	}
-	
-	// 线程主内容
+
+	// main function
 	public void run()
 	{
 		mf.setForeground(Color.BLUE);
 		mf.getLogTextArea().setText("");
 		try
 		{
+			// create ProtocolInterface Object and connect to the server
 			pi = new ProtocolInterface(address_str, port);
-			// 建立ProtocolInterface对象,尝试连接服务器
 		}
 		catch (IOException e)
 		{
@@ -364,8 +364,8 @@ public class ArkFTPWorker extends Thread
 			mf.getLogTextArea().setCaretPosition(mf.getLogTextArea().getText().length());
 			return;
 		}
-		
-		// 服务器连接后列出目录内容
+
+		// list out the content after connected
 		String[] task = {"LIST", "/"};
 		tq.putTask(task);
 
@@ -373,7 +373,8 @@ public class ArkFTPWorker extends Thread
 			return ;
 		mf.getServerComboBox().setEnabled(true);
 		mf.getServerComboBox().setEditable(false);
-		
+
+		// main loop
 		while (isContinue)
 		{
 			task = null;
@@ -390,7 +391,7 @@ public class ArkFTPWorker extends Thread
 					catch (InterruptedException e)
 					{
 					}
-					
+
 					SwingUtilities.invokeLater(new Runnable() {
 						public void run()
 						{
@@ -405,7 +406,7 @@ public class ArkFTPWorker extends Thread
 							tq.clear();
 						}
 						if (!isNoop)
-						{								
+						{
 							try
 							{
 								String respond_str = pi.hasRespondofServerTerminate();
@@ -428,7 +429,7 @@ public class ArkFTPWorker extends Thread
 				if (!tq.isEmpty())
 					task = tq.getTask();
 			}
-			
+
 			if (task != null)
 			{
 				mf.setViewEnabled(false);
@@ -483,7 +484,7 @@ public class ArkFTPWorker extends Thread
 				}
 				else if (task[0].equals("RRMD"))
 				{
-					// 递归删除文件夹
+					// delete folder(s) recursively
 					mf.printState(task[0] + " " + task[1]);
 					final String dataOfList_str;
 					try
@@ -496,14 +497,14 @@ public class ArkFTPWorker extends Thread
 						this.close();
 						return;
 					}
-					
-					// 数据连接出错,什么也不做.
+
+					// connect error, do nothing
 					if (dataOfList_str.equals(""))
 					{
 						return;
 					}
-					
-					this.insertDeleQueue(dataOfList_str, task[1]);									
+
+					this.insertDeleQueue(dataOfList_str, task[1]);
 					idleSeconds = 0;
 				}
 				else if (task[0].equals("STOR"))
@@ -527,8 +528,8 @@ public class ArkFTPWorker extends Thread
 						}
 						else
 						{
-							// 此时的按照文件结构生成完成上传文件夹的任务队列taskQueue，
-							// 然后将此任务队列插入到任务队列tq前面去。
+							// build taskQueue of upload folders (based on the structure of files)
+							// insert the taskQueue in front of tq
 							Vector<String []> taskQueue = new Vector<String []>();
 							Vector<File> dir_v = new Vector<File>();
 							Vector<String> serverPathStr_v = new Vector<String>();
@@ -567,7 +568,7 @@ public class ArkFTPWorker extends Thread
 					{
 						e.printStackTrace();
 						this.close();
-					} 
+					}
 					idleSeconds = 0;
 				}
 				else if (task[0].equals("RENAME"))
@@ -595,7 +596,7 @@ public class ArkFTPWorker extends Thread
 							mf.getQueueTable().setSelectionBackground(Color.GREEN);
 						}
 					});
-					
+
 					if (task[1].charAt(task[1].length()-1) == '/')
 					{
 						Vector<String[]> task_v = new Vector<String[]>();
@@ -616,7 +617,7 @@ public class ArkFTPWorker extends Thread
 							{
 								for (String[] fileAll_array : fileAll_v)
 								{
-									String fileName_str = fileAll_array[6]; 
+									String fileName_str = fileAll_array[6];
 									String fileSize_str = fileAll_array[4];
 									if (fileName_str.charAt(fileName_str.length()-1) != '/')
 									{
@@ -665,13 +666,13 @@ public class ArkFTPWorker extends Thread
 			}
 		}
 	}
-	
+
 	public void changeFTPServer(String address_str, int port) throws IOException
 	{
 		pi.close();
-		pi = new ProtocolInterface(address_str, port);			
+		pi = new ProtocolInterface(address_str, port);
 	}
-	
+
 	public boolean log_in(String name_str, String pass_str)
 	{
 		try
@@ -691,13 +692,13 @@ public class ArkFTPWorker extends Thread
 			return false;
 		}
 	}
-	
+
 	/**
-	 * 
-	 * @param absoluteDir_str 需要List的目录的服务器绝对路径
-	 * @return (1)读取成功，返回多行信息，如果目录下没有子项，返回空行。
-	 * 		   (2)其它，返回null;
-	 * @throws IOException 控制连接出错
+	 *
+	 * @param absoluteDir_str absoulte path of the folder needs to be list
+	 * @return (1)success, return multiple messages. If the folder is empty, return ""
+	 * 		   (2)otherwise, NULL
+	 * @throws IOException
 	 */
 	private String doListNoEffect(String absoluteDir_str) throws IOException
 	{
@@ -720,38 +721,38 @@ public class ArkFTPWorker extends Thread
 				respond_str = pi.doCommand("LIST -al " + absoluteDir_str);
 			}
 		}
-		
+
 		if (respond_str != null)
 			mf.getLogTextArea().append(respond_str);
-		
+
 		if (respond_str == null)
 			mf.getLogTextArea().append("LIST " + absoluteDir_str + " Error!\n");
 		else if (respond_str.length() > 3 && checkNo(respond_str, "226"))
 			return respond_str.substring((respond_str.indexOf('\n') + 1));
-		
+
 		mf.getLogTextArea().setCaretPosition(mf.getLogTextArea().getText().length());
 		return null;
 	}
-	
+
 	/**
-	 * 仅仅用于List服务器当前目录下的目录，并且修改当前目录为List后的当前目录。<br>
-	 * 由于修改了全局的currentDir_str,所以不能用来递归下载文件夹。
-	 * @param dir_str 目录名
-	 * @return String (1)返回成功，返回多行的目录信息，如果为空目录，则返回一空行，修改currentDir_str；
-	 * 				  (2)数据连接错误，返回空字符串；
-	 * 				  (3)数据连接异常，返回null。
-	 * @throws IOException 控制连接出错
+	 * list the current folder and modify the currentDir_str<br>
+	 * change the global variable currentDir_str, cannot be used to download the folder recursively
+	 * @param dir_str folder name
+	 * @return String (1)success, return multiple messages. If the folder is empty, return "". Modify currentDir_str
+	 * 				  (2)connection error, return ""
+	 * 				  (3)connection error, return NULL
+	 * @throws IOException
 	 */
 	private String doList(String dir_str) throws IOException
 	{
 		String respond_str;
-		
+
 		if (dir_str != null && dir_str.equals(".."))
 			doCommandandLog("CDUP");
 		else if (dir_str != null)
 			doCommandandLog("CWD " + dir_str);
 
-		
+
 		if (isPassive)
 		{
 			pi.setPassive();
@@ -770,7 +771,7 @@ public class ArkFTPWorker extends Thread
 				respond_str = doCommandandLog("LIST");
 			}
 		}
-			
+
 		if (respond_str == null)
 			return null;
 		else if (respond_str != null && respond_str.length() > 3 && checkNo(respond_str, "226")) {
@@ -778,7 +779,7 @@ public class ArkFTPWorker extends Thread
 		}
 		else return "";
 	}
-	
+
 	public void listFiles(String dir_str)
 	{
 		final String dataOfList_str;
@@ -793,16 +794,16 @@ public class ArkFTPWorker extends Thread
 			this.close();
 			return;
 		}
-		
-		// 数据连接异常，什么也不做。
+
+		// connection error, do nothing
 		if (dataOfList_str == null)
 			return;
-		
-		// 数据连接错误,什么也不做。
+
+		// connection error, do nothing
 		if (dataOfList_str.equals(""))
 			return;
-		
-		// 没有出错，dataOfList_str就是List命令服务器返回的数据。
+
+		// no error, dataOfList_str is the data returned by LIST from the server
 		Runnable runnable = new Runnable() {
 			public void run()
 			{
@@ -813,8 +814,8 @@ public class ArkFTPWorker extends Thread
 			}
 		};
 		SwingUtilities.invokeLater(runnable);
-	}	
-	
+	}
+
 	public void storeFiles(String filename_str)
 	{
 		try
@@ -828,7 +829,7 @@ public class ArkFTPWorker extends Thread
 			close();
 		}
 	}
-	
+
 	public void doAbort()
 	{
 		try
@@ -841,7 +842,7 @@ public class ArkFTPWorker extends Thread
 			close();
 		}
 	}
-	
+
 	private void downloadFile(String filename_str, String path_str)
 	{
 		pi.setPath(path_str);
@@ -859,7 +860,7 @@ public class ArkFTPWorker extends Thread
 			close();
 		}
 	}
-	
+
 	private boolean checkAlive()
 	{
 		try
@@ -874,7 +875,7 @@ public class ArkFTPWorker extends Thread
 		}
 		return false;
 	}
-	
+
 	public void close()
 	{
 		tq.clear();

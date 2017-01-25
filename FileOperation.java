@@ -1,7 +1,7 @@
 /* ***********************
 ** FileOperation.java
 ** ***********************
-** 用于构造文件类, 实现上下载文件功能
+** Create FileNode Class, for upload/download
 ** Build 0712
 ** **********************/
 package ArkFTP.bin.util;
@@ -11,7 +11,7 @@ import java.io.File;
 public class FileOperation
 {
 	private FileOperation() {}
-	
+
 	public static String listDir(File file)
 	{
 		if (file.exists() && file.isDirectory())

@@ -1,13 +1,15 @@
 /* ***********************
 ** ServerTableModel.java
 ** ***********************
-** 用于构造服务器列表模型
-** 待处理: 目录与文件分开显示, 返回图标
+** Server Table Model
 ** Build 0714
-** 07-14 目录与文件分开显示完成
+** 07-14 divide the folders from files
 ** **********************/
 
 package ArkFTP.bin.model;
+
+import ArkFTP.bin.ui.StringTable;
+import ArkFTP.bin.ui.ResourceTable;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -23,82 +25,82 @@ import javax.swing.table.DefaultTableModel;
 public class ServerTableModel extends DefaultTableModel
 {
 	public final int TABLE_LEN = 5;
-	
+
 	public final int ICON_COL = 0;
 	public final int NAME_COL = 1;
 	public final int SIZE_COL = 2;
 	public final int DATE_COL = 3;
 	public final int ATTRIB_COL = 4;
-	
+
 	public ServerTableModel()
 	{
 		super();
-		addColumn("");
-		addColumn("名称");
-		addColumn("大小");
-		addColumn("修改日期");
-		addColumn("属性");
+		addColumn(StringTable.labelNull);
+		addColumn(StringTable.labelName);
+		addColumn(StringTable.labelSize);
+		addColumn(StringTable.labelDateModified);
+		addColumn(StringTable.labelAttributes);
 	}
-	
-	// 令单元格不可修改
+
+	// set editable = false
 	public boolean isCellEditable(int row, int col)
 	{
 		return false;
 	}
-	// 删除表格中的所有行。
+	// clear the table
 	public void removeAllRows()
 	{
 		dataVector.clear();
 		this.fireTableDataChanged();
 	}
-	// 判断该行是否表示目录。
+	// judge if the row is a folder
 	public boolean isDirRow(int row)
 	{
 		assert(row >= 0 && row < this.getColumnCount());
-		
-		// Row 0 永远表示 ".." 目录。
+
+		// Row 0  = ".."
 		if (row == 0)
 			return true;
-		
+
 		String str = (String)this.getValueAt(row, this.ATTRIB_COL);
 		if (str.charAt(0) == 'd')
 			return true;
 		return false;
 	}
-	
+
 	public Class getColumnClass(int col)
 	{
 		Vector v = (Vector)dataVector.elementAt(0);
 		return v.elementAt(col).getClass();
 	}
-	
-	// 根据LIST命令服务器返回的数据生成表行，并加入表格。
+
+	// use the data returned by LIST of the server to create rows
 	public void addToTable(String dataofList_str)
 	{
 		if (dataofList_str == null)
 			return;
-		
+
 		Object[] fileAttr_str_array = {new ImageIcon(), "..", "", "", ""};
 		addRow(fileAttr_str_array);
-		
+
 		int i = 0, j;
 		while( i < dataofList_str.length()) {
 			if ( (j = i + dataofList_str.substring(i).indexOf('\n')) == -1)
 				break;
-			
+
 			StringTokenizer stk = new StringTokenizer(dataofList_str.substring(i, j));
 			fileAttr_str_array = new Object[TABLE_LEN];
 			int count = stk.countTokens();
 			if (count >= 9) {
-				// Attrib 属性
+				// Attrib
 				fileAttr_str_array[this.ATTRIB_COL] = stk.nextToken();
-				// 跳过3个不关心的属性
+				// ignore 3 attrubites I don't care about
 				for (int k = 0; k < 3; k++)
 					stk.nextToken();
-				// Size 大小
+				// Size
 				fileAttr_str_array[this.SIZE_COL] = stk.nextToken();
-				
-				// Time	修改时间
+
+				// Time
 				SimpleDateFormat f1 = new SimpleDateFormat("MMM dd yyyy", new Locale("ENGLISH"));
 				SimpleDateFormat f2 = new SimpleDateFormat("yyyy MMM dd hh:mm", new Locale("ENGLISH"));
 				SimpleDateFormat f3 = new SimpleDateFormat("yyyy-MM-dd  hh:mm");
@@ -109,7 +111,7 @@ public class ServerTableModel extends DefaultTableModel
 				{
 					if (time_str.charAt(time_str.length() - 3) == ':')
 					{
-						Calendar calendar = Calendar.getInstance();   
+						Calendar calendar = Calendar.getInstance();
 						int year = calendar.get(Calendar.YEAR);
 						time_str = new Integer(year).toString() + ' ' + time_str;
 						Date date = f2.parse(time_str);
@@ -126,18 +128,18 @@ public class ServerTableModel extends DefaultTableModel
 					e.printStackTrace();
 				}
 				fileAttr_str_array[this.DATE_COL] = time_str;
-				
-				// Name 文件名
+
+				// Name
 				String name_str = stk.nextToken();
 				while(stk.hasMoreTokens())
-					name_str += " " + stk.nextToken();		
+					name_str += " " + stk.nextToken();
 				fileAttr_str_array[this.NAME_COL] = name_str;
-				
+
 				if (!fileAttr_str_array[this.NAME_COL].equals(".") && !fileAttr_str_array[this.NAME_COL].equals("..")) {
 					if (((String)fileAttr_str_array[this.ATTRIB_COL]).charAt(0) == 'd')
-						fileAttr_str_array[this.ICON_COL] = new ImageIcon("ArkFTP/res/dirIcon.png");
+						fileAttr_str_array[this.ICON_COL] = new ImageIcon(ResourceTable.iconDir);
 					else
-						fileAttr_str_array[this.ICON_COL] = new ImageIcon("ArkFTP/res/fileIcon.png");
+						fileAttr_str_array[this.ICON_COL] = new ImageIcon(ResourceTable.iconFile);
 					addRow(fileAttr_str_array);
 				}
 			}

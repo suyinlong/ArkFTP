@@ -1,9 +1,9 @@
 /* ***********************
 ** SiteListModel.java
 ** ***********************
-** 用于构造站点管理器列表模型
+** Site List Model
 ** Build 0715
-** 07-15 WriteObject 改写为 XML , 相当于重写此文件
+** 07-15 Change WriteObject to XML
 ** **********************/
 
 package ArkFTP.bin.model;
@@ -28,32 +28,31 @@ import java.util.Vector;
 
 public class SiteListModel extends AbstractListModel
 {
-	
+
 	private Vector<String[]> sites_vector;
-	
-	// 站点管理器XML文件存储地
+
+	// XML path
 	final private String SiteManagerXML = "ArkFTP/res/SiteManager.xml";
-	// 改写此行以使 ArkFTP 保存的站点文件支持 Filezilla 等 XML 导入站点工具
 	private String XMLRootElement = "ArkFTP";
-	
-	/* XML 中DTD定义
-			** 目前有用的元素
-			** [12] Name 站点名称
-			** [0] Host 站点地址
-			** [1] Port 端口
-			** [5] User 用户名
-			** [6] Pass 密码
+
+	/* XML DTD
+			** Used:
+			** [12] Name
+			** [0] Host
+			** [1] Port
+			** [5] User
+			** [6] Pass
 			*/
 	final private int[] UsedItem = {12, 0, 1, 5, 6};
 	final private String[] ItemNameStr = {"Host", "Port", "Protocol", "Type",
 					"Logontype", "User", "Pass", "TimezoneOffset", "PasvMode",
-					"MaximumMultipleConnections", "EncodingType", 
+					"MaximumMultipleConnections", "EncodingType",
 					"BypassProxy", "Name", "Comments", "LocalDir", "RemoteDir"};
-	
+
 	private DocumentBuilder builder;
 
 	public SiteListModel()
-	{		
+	{
 		File manager_file = new File(SiteManagerXML);
 		Document doc = null;
 		if (!manager_file.exists())
@@ -81,19 +80,19 @@ public class SiteListModel extends AbstractListModel
 			System.err.println(e);
 			System.exit(0);
 		}
-		// 开始读取XML内容
+		// read XML
 
 		Element root = doc.getDocumentElement();
 		Node Servers = root.getChildNodes().item(0);
 		NodeList ServerList = Servers.getChildNodes();
-		
+
 		for (int i = 0; i < ServerList.getLength(); i++)
 		{
 			Element ServerItem = (Element) ServerList.item(i);
 			NodeList ServerItemData = ServerItem.getChildNodes();
 
-			/* 仅读入需要的数据 */
-			
+			/* only read the data we need */
+
 			String[] ServerVector = new String[5];
 			for (int it = 0; it < UsedItem.length; it ++)
 			{
@@ -104,18 +103,18 @@ public class SiteListModel extends AbstractListModel
 					value = "";
 				else
 					value = ServerElementDataText.getData().trim();
-				ServerVector[it] = value;	
+				ServerVector[it] = value;
 			}
 			sites_vector.add(ServerVector);
 		}
-		
+
 	}
-	
+
 	public int getSize()
 	{
 		return sites_vector.size();
 	}
-	
+
 	public void addSite(String siteName)
 	{
 		int index;
@@ -132,7 +131,7 @@ public class SiteListModel extends AbstractListModel
 		sites_vector.add(site);
 		this.fireIntervalAdded(this, index, index);
 	}
-	
+
 	public boolean removeSite(String siteName)
 	{
 		int index;
@@ -154,16 +153,16 @@ public class SiteListModel extends AbstractListModel
 		String[] str_array = sites_vector.get(index);
 		return (Object)str_array[0];
 	}
-	
+
 	public void save() {
-		/* 重写为 XML 输出方式	*/
-		
+		/* write XML	*/
+
 		Document savedoc = builder.newDocument();
 		Element rootElement = savedoc.createElement(XMLRootElement);
 		savedoc.appendChild(rootElement);
 		Element ServersElement = savedoc.createElement("Servers");
 		rootElement.appendChild(ServersElement);
-		
+
 		for (int i = 0; i < this.sites_vector.size(); i++)
 		{
 			String[] s = this.sites_vector.get(i);
@@ -195,12 +194,12 @@ public class SiteListModel extends AbstractListModel
 			System.err.println(e);
 		}
 	}
-	
+
 	public String[] getAll(int index)
 	{
 		return sites_vector.get(index);
 	}
-	
+
 	public int findElemnt(String siteName_str)
 	{
 		for(int i = 0; i < this.sites_vector.size(); i++)

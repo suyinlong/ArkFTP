@@ -1,10 +1,10 @@
 /* ***********************
 ** LocalComboBoxModel.java
 ** ***********************
-** 用于构造本地组合框模型, 显示本地驱动器以及当前路径
+** Local combobox model, for local drive and current path
 ** Build 0712
 ** **********************/
- 
+
 package ArkFTP.bin.model;
 
 import java.util.Vector;
@@ -19,8 +19,8 @@ public class LocalComboBoxModel extends DefaultComboBoxModel
 	{
 		super(v);
 	}
-	
-	// 用于替换组合框中特定位置的Item
+
+	// replace the item of the combobox
 	public void replace(int index, String new_str)
 	{
 		this.removeElementAt(index);
@@ -28,7 +28,7 @@ public class LocalComboBoxModel extends DefaultComboBoxModel
 		this.fireContentsChanged(this, index, index);
 	}
 
-	// 获得组合框中与item_str相等的第一个下标值
+	// get the index in the combobox
 	public int getIndexOf(String item_str)
 	{
 		for (int i = 0; i < this.getSize(); i++)

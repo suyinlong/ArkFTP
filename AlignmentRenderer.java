@@ -1,9 +1,9 @@
 /* ***********************
 ** AlignmentRenderer.java
 ** ***********************
-** 用于调整表格列的各列水平对齐方式
+** Adjust the horizontal alignments of the columns in the table
 ** Build 0714
-** 07-14 增加隔行背景色不同功能
+** 07-14 Add alternate background colors of the rows in the table
 ** **********************/
 package ArkFTP.bin.ui;
 

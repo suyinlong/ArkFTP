@@ -1,11 +1,11 @@
 /* ***********************
 ** MainFrame.java
 ** ***********************
-** 主界面
+** Main
 ** Build 0718
-** 07-13 修正了一个问题, 使得断开连接后再退出不再发生错误
-** 07-14 增加了Toolbar, 并认定了默认的UI字体, 不再对单个组件进行字体设置
-** 07-15 增加了最小化到系统托盘以及托盘菜单
+** 07-13 Fix a bug: an error occurs when exit after disconnected
+** 07-14 Add toolbar, set default font
+** 07-15 Add traybar function
 ** **********************/
 package ArkFTP.bin.ui;
 
@@ -33,22 +33,21 @@ public class MainFrame extends JFrame
 {
 	final int HEIGHT;
 	final int WIDTH;
-	
+
 	public Font MainFrameFont = null;
 	public Color[] UsedColor = { new Color(191, 219,255),
 												new Color(222, 236, 255),
 												new Color(255, 181, 74) };
-	public String VersionInfoStr= "ArkFTP - V1.0";
-	// 设定通用字体, 颜色, 版本信息
-	
+	// set default font, color, version info
+
 	private ArkFTPWorker jw;
 	private TaskQueue tq;
-	
+
 	private JTextArea printer_ta;
 	private JLabel state_lb;
 	private JProgressBar jpb;
 	private JMenuBar menubar;
-	
+
 	private JComboBox server_jcb;
 	private JComboBox local_jcb;
 
@@ -60,38 +59,38 @@ public class MainFrame extends JFrame
 	private JTable server_table;
 	private JTable queue_table;
 	private JFileChooser jfc;
-	
+
 	private AboutDialog about_dlg;
 	private ServerManagerDialog manager_dlg;
 	private ConnectToDialog connect_dlg;
 	private ConnectLogDialog connectlog_dlg;
-	
+
 	private void InitTopPanel()
 	{
-		// 这里是顶端菜单与工具栏
-		
+		// Top menu and toolbar
+
 		JPanel login2Menu_pnl = new JPanel();
-		
+
 		JPanel QuickToolBar = new JPanel();
 		QuickToolBar.setBackground(UsedColor[0]);
-		
+
 		QuickToolBar.setLayout(new BoxLayout(QuickToolBar, BoxLayout.X_AXIS));
-		
+
 		/*
-			07-14 新功能 Toolbar
+			07-14 New: Toolbar
 		*/
-		
+
 		JToolBar TaskBar = new JToolBar();
 		TaskBar.setBackground(UsedColor[0]);
 		TaskBar.setMargin(new Insets(3, 3, 3, 3));
 		TaskBar.setBorderPainted(false);
 		TaskBar.setFloatable(false);
-		
-		JButton[] TaskBarButton = { new JButton("连接到...", new ImageIcon("ArkFTP/res/ConnectTo.png")),
-													new JButton("断开连接", new ImageIcon("ArkFTP/res/Disconnect.png")),
-													new JButton("站点管理器", new ImageIcon("ArkFTP/res/ServerManager.png")),
-													new JButton("连接日志", new ImageIcon("ArkFTP/res/ConnectLog.png")),
-													new JButton("后台工作", new ImageIcon("ArkFTP/res/SystemTray.png")) };
+
+		JButton[] TaskBarButton = { new JButton(StringTable.buttonConnect, new ImageIcon(ResourceTable.iconToolbarConnect)),
+													new JButton(StringTable.buttonDisconnect, new ImageIcon(ResourceTable.iconToolbarDisconnect)),
+													new JButton(StringTable.buttonSiteManager, new ImageIcon(ResourceTable.iconToolbarSiteManager)),
+													new JButton(StringTable.buttonLog, new ImageIcon(ResourceTable.iconToolbarLog)),
+													new JButton(StringTable.buttonMinimize, new ImageIcon(ResourceTable.iconToolbarMinimize)) };
 		for (int it = 0; it < TaskBarButton.length; it++)
 		{
 			TaskBarButton[it].setBackground(UsedColor[0]);
@@ -109,14 +108,14 @@ public class MainFrame extends JFrame
 				}
 			});
 		}
-		 
+
 		TaskBarButton[0].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
 				MainFrame.this.connect_dlg.setVisible(true);
 			}
 		});
-			
+
 		TaskBarButton[1].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
@@ -127,68 +126,67 @@ public class MainFrame extends JFrame
 				}
 			}
 		});
-		
+
 		TaskBarButton[2].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
 				MainFrame.this.manager_dlg.setVisible(true);
 			}
 		});
-		
+
 		TaskBarButton[3].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
 				MainFrame.this.connectlog_dlg.UpdateInfo(MainFrame.this);
-				MainFrame.this.connectlog_dlg.setVisible(true);				
+				MainFrame.this.connectlog_dlg.setVisible(true);
 			}
 		});
-		
+
 		TaskBarButton[4].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
 				MainFrame.this.setVisible(false);
 			}
 		});
-		
-		TaskBar.addSeparator(new Dimension(50,64)); 
+
+		TaskBar.addSeparator(new Dimension(50,64));
 		TaskBar.add(TaskBarButton[0]);
 		TaskBar.add(TaskBarButton[1]);
-		TaskBar.addSeparator(new Dimension(50,64)); 
+		TaskBar.addSeparator(new Dimension(50,64));
 		TaskBar.add(TaskBarButton[2]);
-		TaskBar.add(TaskBarButton[3]); 
-		TaskBar.addSeparator(new Dimension(50,64)); 
+		TaskBar.add(TaskBarButton[3]);
+		TaskBar.addSeparator(new Dimension(50,64));
 		TaskBar.add(TaskBarButton[4]);
-		  
+
 		QuickToolBar.add(TaskBar);
-		
-		// 这里开始添加下拉菜单 待改写
+
+		// dropdown menu
 		menubar = new JMenuBar();
 		menubar.setBackground(UsedColor[0]);
-		
-		char[][] menuchar = { {'F', 'T', 'H'}, {'C', 'D', 'X'}, {'S', 'L'}, {'A'} };
-		
-		JMenu menu1 = new JMenu("功能(F)");
-		
-		menu1.setMnemonic(menuchar[0][0]);
-		JMenuItem[] menuItem1 = { new JMenuItem("连接到(C)...", new ImageIcon("ArkFTP/res/MenuConnectTo.png")),
-													new JMenuItem("断开连接(D)", new ImageIcon("ArkFTP/res/MenuDisconnect.png")),
-													new JMenuItem("最小化至系统托盘(M)", new ImageIcon("ArkFTP/res/MenuSystemTray.png")),
-													new JMenuItem("退出(X)", new ImageIcon("ArkFTP/res/MenuExit.png")) };
-		for (int it = 0; it < menuchar[1].length; it++)
-			menuItem1[it].setMnemonic(menuchar[1][it]);
+
+		JMenu menu1 = new JMenu(StringTable.menuFile);
+
+		menu1.setMnemonic(StringTable.menuMnemonic[0][0]);
+		JMenuItem[] menuItem1 = { new JMenuItem(StringTable.menuFileConnectTo, new ImageIcon(ResourceTable.iconMenuFileConnectTo)),
+													new JMenuItem(StringTable.menuFileDisconnect, new ImageIcon(ResourceTable.iconMenuFileDisconnect)),
+													new JMenuItem(StringTable.menuFileMinimize, new ImageIcon(ResourceTable.iconMenuFileMinimize)),
+													new JMenuItem(StringTable.menuFileExit, new ImageIcon(ResourceTable.iconMenuFileExit)) };
+		for (int it = 0; it < StringTable.menuMnemonic[1].length; it++)
+			menuItem1[it].setMnemonic(StringTable.menuMnemonic[1][it]);
+
 		menuItem1[0].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
 				MainFrame.this.connect_dlg.setVisible(true);
 			}
-		});	
+		});
 		menuItem1[1].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
 				if (jw != null)
 				{
 					jw.close();
-					jw = null; // 07-13 修正添加 解决断开连接后退出程序的错误BUG
+					jw = null; // 07-13 fix bug
 				}
 			}
 		});
@@ -202,7 +200,7 @@ public class MainFrame extends JFrame
 			public void actionPerformed(ActionEvent e)
 			{
 				int ExitOrNot = JOptionPane.showConfirmDialog(
-						MainFrame.this, "确实要退出吗？", VersionInfoStr, JOptionPane.YES_NO_OPTION);
+						MainFrame.this, StringTable.exitText, StringTable.exeTitle, JOptionPane.YES_NO_OPTION);
 				if (ExitOrNot == JOptionPane.YES_OPTION) {
 					if (jw != null) {
 						jw.close();
@@ -219,20 +217,22 @@ public class MainFrame extends JFrame
 				}
 			}
 		});
-		menu1.setPreferredSize(new Dimension(60, 20));
+		//menu1.setPreferredSize(new Dimension(33, 20));
 		menu1.add(menuItem1[0]);
 		menu1.add(menuItem1[1]);
 		menu1.addSeparator();
 		menu1.add(menuItem1[2]);
 		menu1.add(menuItem1[3]);
-		
-		JMenu menu2 = new JMenu("工具(T)");
-		menu2.setMnemonic(menuchar[0][1]);
-		menu2.setPreferredSize(new Dimension(60, 20));
-		JMenuItem[] menuItem2 = { new JMenuItem("站点管理器(S)", new ImageIcon("ArkFTP/res/MenuServerManager.png")),
-													new JMenuItem("连接日志(L)", new ImageIcon("ArkFTP/res/MenuConnectLog.png"))};
-		for (int it = 0; it < menuchar[2].length; it++)
-			menuItem2[it].setMnemonic(menuchar[2][it]);
+
+		JMenu menu2 = new JMenu(StringTable.menuTools);
+		menu2.setMnemonic(StringTable.menuMnemonic[0][1]);
+		//menu2.setPreferredSize(new Dimension(42, 20));
+		JMenuItem[] menuItem2 = { new JMenuItem(StringTable.menuToolsSiteManager, new ImageIcon(ResourceTable.iconMenuToolsSiteManager)),
+													new JMenuItem(StringTable.menuToolsLog, new ImageIcon(ResourceTable.iconMenuToolsLog))};
+
+		for (int it = 0; it < StringTable.menuMnemonic[2].length; it++)
+			menuItem2[it].setMnemonic(StringTable.menuMnemonic[2][it]);
+
 		menuItem2[0].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
@@ -243,56 +243,57 @@ public class MainFrame extends JFrame
 			public void actionPerformed(ActionEvent e)
 			{
 				MainFrame.this.connectlog_dlg.UpdateInfo(MainFrame.this);
-				MainFrame.this.connectlog_dlg.setVisible(true);			
+				MainFrame.this.connectlog_dlg.setVisible(true);
 			}
 		});
-		
+
 		menu2.add(menuItem2[0]);
 		menu2.addSeparator();
 		menu2.add(menuItem2[1]);
 
-		JMenu menu3 = new JMenu("帮助(H)");
-		menu3.setMnemonic(menuchar[0][2]);
-		menu3.setPreferredSize(new Dimension(60, 20));
-		JMenuItem[] menuItem3 = { new JMenuItem("关于(A)...", new ImageIcon("ArkFTP/res/MenuAbout.png")) };
-		
-		for (int it = 0; it < menuchar[3].length; it++)
-			menuItem3[it].setMnemonic(menuchar[3][it]);
+		JMenu menu3 = new JMenu(StringTable.menuHelp);
+		menu3.setMnemonic(StringTable.menuMnemonic[0][2]);
+		//menu3.setPreferredSize(new Dimension(38, 20));
+		JMenuItem[] menuItem3 = { new JMenuItem(StringTable.menuHelpAbout, new ImageIcon(ResourceTable.iconMenuHelpAbout)) };
+
+		for (int it = 0; it < StringTable.menuMnemonic[3].length; it++)
+			menuItem3[it].setMnemonic(StringTable.menuMnemonic[3][it]);
+
 		menuItem3[0].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
 				MainFrame.this.about_dlg.StartAnimation();
 				MainFrame.this.about_dlg.setVisible(true);
 			}
-			
+
 		});
 		menu3.add(menuItem3[0]);
-		
+
 		menubar.add(menu1);
 		menubar.add(menu2);
 		menubar.add(menu3);
-		this.add(menubar);		
-		
+		this.add(menubar);
+
 		login2Menu_pnl.setLayout(new BorderLayout());
 		login2Menu_pnl.add(QuickToolBar, BorderLayout.SOUTH);
 		login2Menu_pnl.add(menubar, BorderLayout.NORTH);
 		this.add(login2Menu_pnl, BorderLayout.NORTH);
 	}
-	
+
 	private void InitStatePanel() {
-		// 这里是底端状态栏
+		// status bar
 		JPanel state_pnl = new JPanel();
 		state_pnl.setBackground(UsedColor[0]);
-		
+
 		JPanel left_pnl = new JPanel();
 		left_pnl.setBackground(UsedColor[0]);
 		left_pnl.setLayout(new FlowLayout(FlowLayout.LEADING));
-		state_lb = new JLabel("(没有连接)");
-		
+		state_lb = new JLabel(StringTable.statusBarNoConnection);
+
 		left_pnl.setPreferredSize(new Dimension(800, 22));
 		left_pnl.add(state_lb, BorderLayout.WEST);
 		left_pnl.add(new JSeparator(JSeparator.VERTICAL));
-		
+
 		JPanel right_pnl = new JPanel();
 		right_pnl.setBackground(UsedColor[0]);
 		right_pnl.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -302,9 +303,9 @@ public class MainFrame extends JFrame
 		jpb.setPreferredSize(new Dimension(150, 18));
 		right_pnl.add(jpb);
 		right_pnl.setPreferredSize(new Dimension(180, 20));
-		
-		state_pnl.setLayout(new FlowLayout());		
-		state_pnl.add(left_pnl);		
+
+		state_pnl.setLayout(new FlowLayout());
+		state_pnl.add(left_pnl);
 		JSeparator separator = new JSeparator(JSeparator.VERTICAL);
 		separator.setPreferredSize(new Dimension(2, 20));
 		state_pnl.add(separator);
@@ -312,23 +313,23 @@ public class MainFrame extends JFrame
 		jpb.setVisible(false);
 		this.add(state_pnl, BorderLayout.SOUTH);
 	}
-	
-	private void InitViews() {			
+
+	private void InitViews() {
 		/**
-		 * 这里开始->服务器文件视图
-		 * */ 
+		 * server table
+		 * */
 		final JScrollPane server_scroll;
 		JPanel panel1 = new JPanel();
 		panel1.setLayout(new BorderLayout());
 		server_jcb = new JComboBox();
-		
+
 		server_jcb.setBackground(UsedColor[1]);
 		server_jcb.setForeground(Color.BLACK);
-		
+
 		server_jcb.setPreferredSize(new Dimension(0, 20));
 		server_table_model = new ServerTableModel();
 		server_table = new JTable(this.server_table_model);
-				
+
 		server_table.setRowHeight(24);
 		server_table.setFillsViewportHeight(true);
 		server_table.setBackground(Color.WHITE);
@@ -336,8 +337,8 @@ public class MainFrame extends JFrame
 		server_table.setShowGrid(true);
 		server_table.setGridColor(Color.white);
 		server_table.setDragEnabled(false);
-		
-		// 设置Icon列的长度。
+
+		// width of icon column
 		TableColumn iconColumn = server_table.getColumn("");
 		iconColumn.setMaxWidth(server_table.getRowHeight());
 		iconColumn.setMinWidth(server_table.getRowHeight());
@@ -350,17 +351,17 @@ public class MainFrame extends JFrame
 		panel1.add(server_jcb, BorderLayout.NORTH);
 		panel1.add(server_scroll, BorderLayout.CENTER);
 		server_jcb.setEnabled(false);
-	
+
 		/**
-		 * 这里开始->本机文件视图
-		 * */ 
+		 * local table
+		 * */
 		final JScrollPane local_scroll;
 		JPanel panel2 = new JPanel();
 		panel2.setLayout(new BorderLayout());
 		panel2.setBackground(Color.WHITE);
 		local_table_model = new LocalTableModel();
-		
-		// ComboBox中存的是系统的各个Root下访问的当前目录.
+
+		// ComboBox: current dir of roots
 		File [] files = File.listRoots();
 		File currentDir_file = new File(System.getProperty("user.dir"));
 		String currentDir_str = currentDir_file.getAbsolutePath();
@@ -368,7 +369,7 @@ public class MainFrame extends JFrame
 		if (currentDir_str.charAt(currentDir_str.length()-1) != File.separatorChar)
 			currentDir_str += File.separatorChar;
 		for (File f : files)
-		{ 
+		{
 			String rootDir_str = f.getAbsolutePath();
 			if (rootDir_str.equals(currentDir_str.substring(0, rootDir_str.length())))
 				v.addElement(currentDir_str);
@@ -379,15 +380,15 @@ public class MainFrame extends JFrame
 		local_jcb = new JComboBox(local_comboBox_model);
 		int i = this.local_comboBox_model.getIndexOf(currentDir_str);
 		local_jcb.setSelectedIndex(i);
-	
+
 		local_jcb.setForeground(Color.BLACK);
 		local_jcb.setBackground(UsedColor[1]);
-		
+
 		local_jcb.setPreferredSize(new Dimension(0, 20));
 		local_table_model.addAllChildren(currentDir_file);
 		local_table = new JTable(this.local_table_model);
 		local_table.setDefaultRenderer(new String().getClass(), new AlignmentRenderer());
-		
+
 		local_table.setRowHeight(24);
 		local_table.setFillsViewportHeight(true);
 		local_table.setBackground(Color.WHITE);
@@ -395,12 +396,12 @@ public class MainFrame extends JFrame
 		local_table.setShowGrid(true);
 		local_table.setGridColor(Color.white);
 		local_table.setDragEnabled(false);
-		
-		// 设置Icon列的长度。
+
+		// set the width of icon column
 		iconColumn = local_table.getColumn("");
 		iconColumn.setMaxWidth(local_table.getRowHeight());
 		iconColumn.setMinWidth(local_table.getRowHeight());
-		
+
 		local_scroll = new JScrollPane(local_table);
 		local_scroll.setBackground(Color.WHITE);
 		panel_scroll = new JPanel();
@@ -408,18 +409,18 @@ public class MainFrame extends JFrame
 		panel_scroll.add(local_scroll);
 		panel2.add(local_jcb, BorderLayout.NORTH);
 		panel2.add(local_scroll, BorderLayout.CENTER);
-				
+
 		JSplitPane top_split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, false, panel2, panel1);
 		top_split.setResizeWeight(0.5);
-		top_split.setDividerSize(4); 
-		
+		top_split.setDividerSize(4);
+
 		/**
-		 * 这里开始->传输队列视图
-		 * */ 
+		 * queue
+		 * */
 		JScrollPane queue_scroll;
 		queue_table_model = new QueueTableModel();
 		queue_table = new JTable(queue_table_model);
-		
+
 		queue_table.setRowHeight(24);
 		queue_table.setFillsViewportHeight(true);
 		queue_table.setBackground(Color.WHITE);
@@ -427,22 +428,22 @@ public class MainFrame extends JFrame
 		queue_table.setShowGrid(true);
 		queue_table.setGridColor(Color.white);
 		queue_table.setDragEnabled(false);
-		
+
 		queue_scroll = new JScrollPane(queue_table);
-		queue_scroll.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "传输队列"));
+		queue_scroll.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), StringTable.queueTableTitle));
 		queue_scroll.setBackground(UsedColor[0]);
 		/**
-		 * 这里开始->用户和服务器交互消息视图
-		 * */ 
+		 * message between server and client
+		 * */
 		printer_ta = new JTextArea(0, 40);
 		printer_ta.setEditable(false);
 		printer_ta.setBackground(UsedColor[0]);
 		JScrollPane printer_scroll = new JScrollPane(printer_ta);
-		
-		
+
+
 		printer_scroll.setBackground(UsedColor[0]);
-	
-		printer_scroll.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "通迅记录"));
+
+		printer_scroll.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), StringTable.logTextTitle));
 		JSplitPane bottom_split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, queue_scroll, printer_scroll);
 		bottom_split.setDividerSize(0);
 		bottom_split.setResizeWeight(0.5);
@@ -451,22 +452,21 @@ public class MainFrame extends JFrame
 		total_split.setDividerSize(2);
 		total_split.setResizeWeight(0.8);
 		add(total_split);
-		
+
 		/**
-		 * 	server_table鼠标右击产生的弹出菜单。
+		 * 	popup menu of server table
 		 */
 		final JPopupMenu server_popup = new JPopupMenu();
-		char[] item1C = { 'O', 'S', 'D', 'R', 'N' , 'E' };
-		final JMenuItem[] item1 = {	new JMenuItem("下载 (O)", new ImageIcon("ArkFTP/res/MenuDownload.png")),
-													new JMenuItem("目标另存为... (S)", new ImageIcon("ArkFTP/res/MenuSaveas.png")),
-													new JMenuItem("删除 (D)", new ImageIcon("ArkFTP/res/MenuDelete.png")),
-													new JMenuItem("重命名 (R)", new ImageIcon("ArkFTP/res/MenuRename.png")),
-													new JMenuItem("新建文件夹 (N)", new ImageIcon("ArkFTP/res/MenuNewfolder.png")),
-													new JMenuItem("刷新 (E)", new ImageIcon("ArkFTP/res/MenuRefresh.png")) };
+		final JMenuItem[] item1 = {	new JMenuItem(StringTable.popupMenuServerDownload, new ImageIcon(ResourceTable.iconPopupMenuServerDownload)),
+													new JMenuItem(StringTable.popupMenuServerSaveAs, new ImageIcon(ResourceTable.iconPopupMenuServerSaveAs)),
+													new JMenuItem(StringTable.popupMenuServerDelete, new ImageIcon(ResourceTable.iconPopupMenuServerDelete)),
+													new JMenuItem(StringTable.popupMenuServerRename, new ImageIcon(ResourceTable.iconPopupMenuServerRename)),
+													new JMenuItem(StringTable.popupMenuServerNewFolder, new ImageIcon(ResourceTable.iconPopupMenuServerNewFolder)),
+													new JMenuItem(StringTable.popupMenuServerRefresh, new ImageIcon(ResourceTable.iconPopupMenuServerRefresh)) };
 		for (int it = 0; it < item1.length; it++)
 		{
 			item1[it].setPreferredSize(new Dimension(150, 38));
-			item1[it].setMnemonic(item1C[it]);
+			item1[it].setMnemonic(StringTable.popupMenuServerMnemonic[it]);
 		}
 		item1[0].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event)
@@ -483,7 +483,7 @@ public class MainFrame extends JFrame
 										};
 						queue_table_model.insertRow(0, queueRow);
 						queue_table.setRowSelectionInterval(0, 0);
-						String[] task1 = {	"RETR", 
+						String[] task1 = {	"RETR",
 							jw.getCurrentDir() + (String)server_table_model.getValueAt(n, server_table_model.NAME_COL),
 							(String)local_jcb.getSelectedItem(),
 							(String)server_table_model.getValueAt(n, server_table_model.SIZE_COL),
@@ -498,15 +498,15 @@ public class MainFrame extends JFrame
 			}
 		});
 		server_popup.add(item1[0]);
-				
+
 		item1[1].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
-				jfc.setDialogTitle("选择保存目录..");
+				jfc.setDialogTitle(StringTable.saveAsTitle);
 				jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				int state = jfc.showOpenDialog(null);
 				File file = jfc.getSelectedFile();
-				
+
 				if (file != null && file.isDirectory() && state == JFileChooser.APPROVE_OPTION) {
 					int selected[] = server_table.getSelectedRows();
 					for (int i = 0; i < selected.length; i++)
@@ -514,9 +514,9 @@ public class MainFrame extends JFrame
 						String fileName_str = jw.getCurrentDir() + (String)server_table_model.getValueAt(selected[i], server_table_model.NAME_COL);
 						if (server_table_model.isDirRow(selected[i]))
 							fileName_str += '/';
-							
-						String[] str_array = {	fileName_str, 
-											  	(String)server_table_model.getValueAt(selected[i], server_table_model.SIZE_COL), 
+
+						String[] str_array = {	fileName_str,
+											  	(String)server_table_model.getValueAt(selected[i], server_table_model.SIZE_COL),
 											  	file.getAbsolutePath() + File.separatorChar,
 											  	"RETR"
 											 };
@@ -524,7 +524,7 @@ public class MainFrame extends JFrame
 					}
 					server_table.clearSelection();
 				}
-			}			
+			}
 		});
 		server_popup.add(item1[1]);
 		server_popup.addSeparator();
@@ -535,10 +535,10 @@ public class MainFrame extends JFrame
 				for (int i = 0; i < selected.length; i++)
 				{
 					int DeleteOrNot = JOptionPane.showConfirmDialog(
-						MainFrame.this, "确实要删除选中的文件与目录吗？", "删除操作确认", JOptionPane.YES_NO_OPTION);
+						MainFrame.this, StringTable.deleteText, StringTable.deleteTitle, JOptionPane.YES_NO_OPTION);
 					if (DeleteOrNot == JOptionPane.YES_OPTION)
 					{
-						String fileName_str = jw.getCurrentDir() + (String)server_table_model.getValueAt(selected[i], server_table_model.NAME_COL);					
+						String fileName_str = jw.getCurrentDir() + (String)server_table_model.getValueAt(selected[i], server_table_model.NAME_COL);
 						if (server_table_model.isDirRow(selected[i]))
 						{
 							String[] task1 = {"RRMD", fileName_str + '/'};
@@ -547,13 +547,13 @@ public class MainFrame extends JFrame
 							tq.putTask(task2);
 						}
 						else
-						{						
+						{
 							String[] task1 = {"DELE", fileName_str};
 							tq.putTask(task1);
 							String[] task2 = {"LIST", jw.getCurrentDir()};
 							tq.putTask(task2);
 						}
-					}					
+					}
 				}
 			}
 		});
@@ -596,22 +596,21 @@ public class MainFrame extends JFrame
 				tq.putTask(task);
 			}
 		});
-		server_popup.add(item1[5]);	
-		
+		server_popup.add(item1[5]);
+
 		/**
-		 * local_table鼠标右击产生的弹出菜单。
+		 * popup menu of local table
 		 */
 		final JPopupMenu local_popup = new JPopupMenu();
-		char[] item2C = { 'U', 'R', 'N', 'D', 'E' };
-		final JMenuItem[] item2 = {	new JMenuItem("上传 (U)", new ImageIcon("ArkFTP/res/MenuUpload.png")),
-													new JMenuItem("重命名 (R)", new ImageIcon("ArkFTP/res/MenuRename.png")),
-													new JMenuItem("新建文件夹 (N)", new ImageIcon("ArkFTP/res/MenuNewfolder.png")),
-													new JMenuItem("删除 (D)", new ImageIcon("ArkFTP/res/MenuDelete.png")),
-													new JMenuItem("刷新 (E)", new ImageIcon("ArkFTP/res/MenuRefresh.png")) };
+		final JMenuItem[] item2 = {	new JMenuItem(StringTable.popupMenuLocalUpload, new ImageIcon(ResourceTable.iconPopupMenuLocalUpload)),
+													new JMenuItem(StringTable.popupMenuLocalRename, new ImageIcon(ResourceTable.iconPopupMenuLocalRename)),
+													new JMenuItem(StringTable.popupMenuLocalNewFolder, new ImageIcon(ResourceTable.iconPopupMenuLocalNewFolder)),
+													new JMenuItem(StringTable.popupMenuLocalDelete, new ImageIcon(ResourceTable.iconPopupMenuLocalDelete)),
+													new JMenuItem(StringTable.popupMenuLocalRefresh, new ImageIcon(ResourceTable.iconPopupMenuLocalRefresh)) };
 		for (int it = 0; it < item2.length; it++)
 		{
 			item2[it].setPreferredSize(new Dimension(150, 38));
-			item2[it].setMnemonic(item2C[it]);
+			item2[it].setMnemonic(StringTable.popupMenuLocalMnemonic[it]);
 		}
 		item2[0].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
@@ -625,19 +624,19 @@ public class MainFrame extends JFrame
 						File file = new File((String)local_jcb.getItemAt(local_jcb.getSelectedIndex()) + fileName_str);
 						if (file.isDirectory())
 							fileName_str = file.getName() + File.separatorChar;
-						String[] str_array = {	(String)local_jcb.getItemAt(local_jcb.getSelectedIndex()) + fileName_str, 
-				  								(String)local_table_model.getValueAt(index, local_table_model.SIZE_COL), 
+						String[] str_array = {	(String)local_jcb.getItemAt(local_jcb.getSelectedIndex()) + fileName_str,
+				  								(String)local_table_model.getValueAt(index, local_table_model.SIZE_COL),
 				  								jw.getCurrentDir(),
 				  								"STOR"
 				  							 };
 						queue_table_model.addRow(str_array);
 					}
 				}
-			}			
+			}
 		});
 		local_popup.add(item2[0]);
 		local_popup.addSeparator();
-		
+
 		item2[1].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
@@ -656,7 +655,7 @@ public class MainFrame extends JFrame
 			}
 		});
 		local_popup.add(item2[1]);
-		
+
 		item2[2].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
@@ -673,12 +672,12 @@ public class MainFrame extends JFrame
 			}
 		});
 		local_popup.add(item2[2]);
-		
+
 		item2[3].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
 				int DeleteOrNot = JOptionPane.showConfirmDialog(
-						MainFrame.this, "确实要删除选中的文件与目录吗？", "删除操作确认", JOptionPane.YES_NO_OPTION);
+						MainFrame.this, StringTable.deleteText, StringTable.deleteTitle, JOptionPane.YES_NO_OPTION);
 				if (DeleteOrNot == JOptionPane.YES_OPTION)
 				{
 					int row = local_table.getSelectedRow();
@@ -692,7 +691,7 @@ public class MainFrame extends JFrame
 		});
 		local_popup.add(item2[3]);
 		local_popup.addSeparator();
-				
+
 		item2[4].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
@@ -700,24 +699,23 @@ public class MainFrame extends JFrame
 			}
 		});
 		local_popup.add(item2[4]);
-		
-		
+
+
 		/**
-		 *  queue_table 鼠标右击产生的弹出菜单。
+		 *  popup menu of queue table
 		 */
 		final JPopupMenu queue_popup = new JPopupMenu();
-		char[] item3C = { 'A', 'S', 'D', 'E', 'C' };
-		final JMenuItem[] item3 = { new JMenuItem("传输全部 (A)"),
-													new JMenuItem("传输所选 (S)"),
-													new JMenuItem("删除全部 (D)"),
-													new JMenuItem("删除所选 (E)"),
-													new JMenuItem("放弃传输 (C)") };
+		final JMenuItem[] item3 = { new JMenuItem(StringTable.popupMenuQueueTransmitAll),
+													new JMenuItem(StringTable.popupMenuQueueTransmitSelected),
+													new JMenuItem(StringTable.popupMenuQueueDeleteAll),
+													new JMenuItem(StringTable.popupMenuQueueDeleteSelected),
+													new JMenuItem(StringTable.popupMenuQueueAbandon) };
 		for (int it = 0; it < item3.length; it++)
 		{
 			item3[it].setPreferredSize(new Dimension(120, 32));
-			item3[it].setMnemonic(item3C[it]);
+			item3[it].setMnemonic(StringTable.popUpMenuQueueMnemonic[it]);
 		}
-		
+
 		queue_popup.add(item3[0]);
 		queue_popup.add(item3[1]);
 		queue_popup.addSeparator();
@@ -735,8 +733,8 @@ public class MainFrame extends JFrame
 					String type_str = (String)queue_table_model.getValueAt(indexs[i], queue_table_model.TYPE_COL);
 					if (type_str.equals("RETR"))
 					{
-						String[] task1 = {	type_str, 
-											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.NAME_COL), 
+						String[] task1 = {	type_str,
+											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.NAME_COL),
 											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.TARGET_COL),
 											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.SIZE_COL),
 										};
@@ -746,8 +744,8 @@ public class MainFrame extends JFrame
 					}
 					else if (type_str.equals("STOR"))
 					{
-						String[] task1 = {	type_str, 
-											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.NAME_COL), 
+						String[] task1 = {	type_str,
+											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.NAME_COL),
 											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.TARGET_COL)
 										};
 						String[] task2 = {"DELE_ENTRY", new Integer(indexs[i] - i).toString()};
@@ -755,7 +753,7 @@ public class MainFrame extends JFrame
 						tq.putTask(task2);
 					}
 				}
-			}	
+			}
 		});
 		item3[1].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
@@ -766,8 +764,8 @@ public class MainFrame extends JFrame
 					String type_str = (String)queue_table_model.getValueAt(indexs[i], queue_table_model.TYPE_COL);
 					if (type_str.equals("RETR"))
 					{
-						String[] task1 = {	type_str, 
-											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.NAME_COL), 
+						String[] task1 = {	type_str,
+											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.NAME_COL),
 											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.TARGET_COL),
 											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.SIZE_COL),
 										};
@@ -777,8 +775,8 @@ public class MainFrame extends JFrame
 					}
 					else if (type_str.equals("STOR"))
 					{
-						String[] task1 = {	type_str, 
-											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.NAME_COL), 
+						String[] task1 = {	type_str,
+											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.NAME_COL),
 											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.TARGET_COL)
 										};
 						String[] task2 = {"DELE_ENTRY", new Integer(indexs[i] - i).toString()};
@@ -786,13 +784,13 @@ public class MainFrame extends JFrame
 						tq.putTask(task2);
 					}
 				}
-			}	
+			}
 		});
 		item3[2].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
 				queue_table_model.removeAllRows();
-			}			
+			}
 		});
 		item3[3].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
@@ -802,7 +800,7 @@ public class MainFrame extends JFrame
 					int index = queue_table.getSelectedRow();
 					queue_table_model.removeRow(index);
 				}
-			}	
+			}
 		});
 		item3[4].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
@@ -811,13 +809,13 @@ public class MainFrame extends JFrame
 				{
 					tq.clear();
 				}
-				if (jw != null) jw.doAbort(); // 07-15 加入判断, 解决无连接此功能出现异常的问题
+				if (jw != null) jw.doAbort(); // 07-15 fix a bug when there is no connection
 			}
 		});
- 		
+
 		/**
-		 * 这里开始->添加监听器
-		 * */ 
+		 * add listener
+		 * */
 		local_jcb.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
@@ -829,7 +827,7 @@ public class MainFrame extends JFrame
 					local_table.requestFocus();
 				}
 			}
-			
+
 		});
 		server_table.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent event)
@@ -857,8 +855,8 @@ public class MainFrame extends JFrame
 											};
 						queue_table_model.insertRow(0, queueRow);
 						queue_table.setRowSelectionInterval(0, 0);
-						
-						String[] task1 = {	"RETR", 
+
+						String[] task1 = {	"RETR",
 											jw.getCurrentDir() + (String)server_table_model.getValueAt(n, server_table_model.NAME_COL),
 											(String)local_jcb.getSelectedItem(),
 											(String)server_table_model.getValueAt(n, server_table_model.SIZE_COL),
@@ -870,7 +868,7 @@ public class MainFrame extends JFrame
 						tq.putTask(task3);
 					}
 				}
-				
+
 				if (event.getClickCount() == 1 && event.getButton() == MouseEvent.BUTTON3)
 				{
 					item1[0].setEnabled(true);
@@ -893,7 +891,7 @@ public class MainFrame extends JFrame
 						}
 						else
 						{
-							// 如果选中多项的话，所做的操作与".."无关。
+							// if select multiple items, nothing to do with ".."
 							item1[2].setEnabled(false);
 							item1[3].setEnabled(false);
 							server_table.addRowSelectionInterval(n, n);
@@ -910,7 +908,7 @@ public class MainFrame extends JFrame
 		});
 		local_table.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent event)
-			{ 
+			{
 				Point p = event.getPoint();
 				int n = local_table.rowAtPoint(p);
 				if (event.getClickCount() >= 2 && event.getButton() == MouseEvent.BUTTON1)
@@ -951,8 +949,8 @@ public class MainFrame extends JFrame
 													  };
 							queue_table_model.insertRow(0, queueRow);
 							queue_table.setRowSelectionInterval(0, 0);
-							String[] task1 = {	"STOR", 
-											 	(String)local_jcb.getItemAt(local_jcb.getSelectedIndex()) + (String)local_table_model.getValueAt(n, local_table_model.NAME_COL), 
+							String[] task1 = {	"STOR",
+											 	(String)local_jcb.getItemAt(local_jcb.getSelectedIndex()) + (String)local_table_model.getValueAt(n, local_table_model.NAME_COL),
 											 	jw.getCurrentDir(),
 											};
 							String[] task2 = {"DELE_ENTRY", "0"};
@@ -981,12 +979,12 @@ public class MainFrame extends JFrame
 								item2[0].setEnabled(false);
 								item2[1].setEnabled(false);
 								item2[3].setEnabled(false);
-							}							
+							}
 							local_popup.show(local_table, p.x, p.y);
 						}
 						else
 						{
-							// 如果选中多项的话，所做的操作与".."无关。
+							// if select multiple items, nothing to do with ".."
 							item2[1].setEnabled(false);
 							item2[2].setEnabled(false);
 							item2[3].setEnabled(false);
@@ -997,7 +995,7 @@ public class MainFrame extends JFrame
 							}
 						}
 						if (!server_table.isEnabled())
-							item2[0].setEnabled(false);							
+							item2[0].setEnabled(false);
 						local_popup.show(local_table, p.x, p.y);
 					}
 				}
@@ -1013,8 +1011,8 @@ public class MainFrame extends JFrame
 					String type_str = (String)queue_table_model.getValueAt(n, queue_table_model.TYPE_COL);
 					if (type_str.equals("RETR"))
 					{
-						String[] task1 = {	type_str, 
-											(String)queue_table_model.getValueAt(n, queue_table_model.NAME_COL), 
+						String[] task1 = {	type_str,
+											(String)queue_table_model.getValueAt(n, queue_table_model.NAME_COL),
 											(String)queue_table_model.getValueAt(n, queue_table_model.TARGET_COL),
 											(String)queue_table_model.getValueAt(n, queue_table_model.SIZE_COL),
 										};
@@ -1024,8 +1022,8 @@ public class MainFrame extends JFrame
 					}
 					else if (type_str.equals("STOR"))
 					{
-						String[] task1 = {	type_str, 
-											(String)queue_table_model.getValueAt(n, queue_table_model.NAME_COL), 
+						String[] task1 = {	type_str,
+											(String)queue_table_model.getValueAt(n, queue_table_model.NAME_COL),
 											(String)queue_table_model.getValueAt(n, queue_table_model.TARGET_COL),
 											(String)queue_table_model.getValueAt(n, queue_table_model.SIZE_COL),
 										};
@@ -1034,7 +1032,7 @@ public class MainFrame extends JFrame
 						tq.putTask(task2);
 					}
 					queue_table.setSelectionBackground(Color.GREEN);
-				} 
+				}
 				if (event.getClickCount() == 1 && event.getButton() == MouseEvent.BUTTON3)
 				{
 					item3[0].setEnabled(true);
@@ -1051,27 +1049,28 @@ public class MainFrame extends JFrame
 					}
 					queue_popup.show(queue_table, p.x, p.y);
 				}
-			} 
+			}
 		});
 	}
-	
-	
+
+
 	public MainFrame()
 	{
 		boolean LoadFont = true;
 		try
 		{
-			MainFrameFont = Font.createFont(0, new File("ArkFTP/res/YuanTi.ttf"));
-			MainFrameFont = MainFrameFont.deriveFont(12.0F);
+			//MainFrameFont = Font.createFont(0, new File("ArkFTP/res/YuanTi.ttf"));
+			//MainFrameFont = MainFrameFont.deriveFont(12.0F);
+			MainFrameFont = new Font(ResourceTable.fontName, Font.PLAIN, 12);
 		}
 		catch (Exception e)
 		{
 			LoadFont = false;
-			JOptionPane.showMessageDialog(MainFrame.this, "载入字体库时发生错误，界面显示可能不正常！");
+			JOptionPane.showMessageDialog(MainFrame.this, StringTable.loadFontErrorText);
 		}
 		if (LoadFont == true)
 		{
-			// 如果载入字体成功，对全局字体进行设置
+			// if load font, set global font
 			FontUIResource fontRes = new FontUIResource(MainFrameFont);
 			for (Enumeration keys = UIManager.getDefaults().keys(); keys.hasMoreElements();)
 			{
@@ -1086,15 +1085,15 @@ public class MainFrame extends JFrame
 		UIManager.put("Panel.background", UsedColor[0]);
 
 		Toolkit kit = Toolkit.getDefaultToolkit();
-		Cursor ArkCursor = kit.createCustomCursor(new ImageIcon("ArkFTP/res/Arrow.png").getImage(), new Point(0, 0), "Arrow");
+		Cursor ArkCursor = kit.createCustomCursor(new ImageIcon(ResourceTable.cursorPath).getImage(), new Point(0, 0), ResourceTable.cursorName);
   		this.setCursor(ArkCursor);
 		Dimension screenSize = kit.getScreenSize();
 		WIDTH = screenSize.width;
 		HEIGHT = screenSize.height;
 		this.setSize(WIDTH, HEIGHT);
 		this.setLayout(new BorderLayout());
-		this.setTitle(VersionInfoStr);
-		
+		this.setTitle(StringTable.exeTitle);
+
 		this.InitTopPanel();
 		this.InitViews();
 		this.InitStatePanel();
@@ -1106,12 +1105,12 @@ public class MainFrame extends JFrame
 		this.manager_dlg = new ServerManagerDialog(this);
 		this.connect_dlg = new ConnectToDialog(this);
 		this.connectlog_dlg = new ConnectLogDialog(this);
-		
+
 		this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e)
 			{
 				int ExitOrNot = JOptionPane.showConfirmDialog(
-						MainFrame.this, "确实要退出吗？", VersionInfoStr, JOptionPane.YES_NO_OPTION);
+						MainFrame.this, StringTable.exitText, StringTable.exeTitle, JOptionPane.YES_NO_OPTION);
 				if (ExitOrNot == JOptionPane.YES_OPTION) {
 					if (jw != null) {
 						jw.close();
@@ -1128,24 +1127,24 @@ public class MainFrame extends JFrame
 				}
 			}
 		});
-	}	
-	
+	}
+
 	public void ToolBarFocusGained(JButton ToolButton)
 	{
-		ToolButton.setBackground(UsedColor[2]);	
+		ToolButton.setBackground(UsedColor[2]);
 	}
 	public void ToolBarFocusLost(JButton ToolButton)
 	{
-		ToolButton.setBackground(UsedColor[0]);	
+		ToolButton.setBackground(UsedColor[0]);
 	}
 	public void InitTrayFunction()
     {
     	PopupMenu TrayMenu = new PopupMenu();
-    	MenuItem[] TrayItem = { new MenuItem("显示 / 隐藏"),
-    											new MenuItem("传输全部"),
-    											new MenuItem("取消传输"),
-    											new MenuItem("断开连接"),
-    											new MenuItem("退出") };
+    	MenuItem[] TrayItem = { new MenuItem(StringTable.popupMenuTrayShowHide),
+    											new MenuItem(StringTable.popupMenuTrayTransmitAll),
+    											new MenuItem(StringTable.popupMenuTrayCancelTransmit),
+    											new MenuItem(StringTable.popupMenuTrayDisconnect),
+    											new MenuItem(StringTable.popupMenuTrayExit) };
     	TrayItem[0].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event)
 			{
@@ -1165,8 +1164,8 @@ public class MainFrame extends JFrame
 					String type_str = (String)queue_table_model.getValueAt(indexs[i], queue_table_model.TYPE_COL);
 					if (type_str.equals("RETR"))
 					{
-						String[] task1 = {	type_str, 
-											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.NAME_COL), 
+						String[] task1 = {	type_str,
+											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.NAME_COL),
 											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.TARGET_COL),
 											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.SIZE_COL),
 										};
@@ -1176,8 +1175,8 @@ public class MainFrame extends JFrame
 					}
 					else if (type_str.equals("STOR"))
 					{
-						String[] task1 = {	type_str, 
-											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.NAME_COL), 
+						String[] task1 = {	type_str,
+											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.NAME_COL),
 											(String)queue_table_model.getValueAt(indexs[i], queue_table_model.TARGET_COL)
 										};
 						String[] task2 = {"DELE_ENTRY", new Integer(indexs[i] - i).toString()};
@@ -1185,7 +1184,7 @@ public class MainFrame extends JFrame
 						tq.putTask(task2);
 					}
 				}
-			}	
+			}
 		});
 		TrayItem[2].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
@@ -1203,7 +1202,7 @@ public class MainFrame extends JFrame
 				if (jw != null)
 				{
 					jw.close();
-					jw = null; // 07-13 修正添加 解决断开连接后退出程序的错误BUG
+					jw = null; // 07-13 fix a bug: error occurs when exit after disconnected
 				}
 			}
 		});
@@ -1211,7 +1210,7 @@ public class MainFrame extends JFrame
 			public void actionPerformed(ActionEvent event)
 			{
 				int ExitOrNot = JOptionPane.showConfirmDialog(
-						MainFrame.this, "确实要退出吗？", VersionInfoStr, JOptionPane.YES_NO_OPTION);
+						MainFrame.this, StringTable.exitText, StringTable.exeTitle, JOptionPane.YES_NO_OPTION);
 				if (ExitOrNot == JOptionPane.YES_OPTION) {
 					if (jw != null)
 					{
@@ -1229,8 +1228,8 @@ public class MainFrame extends JFrame
 				}
 			}
 		});
-		
-    			
+
+
 		TrayMenu.add(TrayItem[0]);
 		TrayMenu.addSeparator();
 		TrayMenu.add(TrayItem[1]);
@@ -1238,17 +1237,17 @@ public class MainFrame extends JFrame
 		TrayMenu.addSeparator();
 		TrayMenu.add(TrayItem[3]);
 		TrayMenu.add(TrayItem[4]);
-		
+
     	try
 		{
 			if (java.awt.SystemTray.isSupported())
 			{
 				java.awt.SystemTray  st = java.awt.SystemTray.getSystemTray();
 				Image image = Toolkit.getDefaultToolkit().getImage(
-                        getClass().getResource("/ArkFTP/res/MainIcon.png"));
+                        getClass().getResource(ResourceTable.iconTray));
      	        java.awt.TrayIcon ti = new java.awt.TrayIcon( image);
-        	    ti.setToolTip(VersionInfoStr);
-            	ti.setPopupMenu(TrayMenu);    //为托盘添加右键菜单
+        	    ti.setToolTip(StringTable.exeTitle);
+            	ti.setPopupMenu(TrayMenu);    //Add popup menu for tray
             	ti.addActionListener(new ActionListener() {
             		public void actionPerformed(ActionEvent e)
             		{
@@ -1258,92 +1257,92 @@ public class MainFrame extends JFrame
 			   				MainFrame.this.setVisible(true);
 			   		}
               	});
-				st.add(ti);         
+				st.add(ti);
 			}
 		}
 		catch (Exception e)
 		{
-              
-		}       
+
+		}
 	}
-	
+
 	public JLabel getStateLabel()
 	{
 		return this.state_lb;
 	}
-	
+
 	public JTextArea getLogTextArea()
 	{
 		return this.printer_ta;
 	}
-	
+
 	public JComboBox getServerComboBox()
 	{
 		return this.server_jcb;
 	}
-	
+
 	public JProgressBar getProgressBar()
 	{
 		return this.jpb;
 	}
-	
+
 	public ServerTableModel getServerTableModel()
 	{
 		return this.server_table_model;
 	}
-	
+
 	public QueueTableModel getQueueTableModel()
 	{
 		return this.queue_table_model;
 	}
-	
+
 	public LocalTableModel getLocalTableModel()
 	{
 		return this.local_table_model;
 	}
-	
+
 	public JComboBox getLocalComboBox()
 	{
 		return this.local_jcb;
 	}
-	
+
 	public JTable getQueueTable()
 	{
 		return this.queue_table;
 	}
-	
+
 	public void printState(String state_str)
 	{
 		state_lb.setText(state_str);
 	}
-	
+
 	public void setViewEnabled(boolean b)
 	{
 		queue_table.setEnabled(b);
-		server_table.setEnabled(b);	
+		server_table.setEnabled(b);
 	}
-	
+
 	public void startFTP(String user_str, String pass_str, String server_str, String port_str)
 	{
 		int port;
-		
+
 		if (server_str.length() == 0)
 		{
-			MainFrame.this.printer_ta.append("必须输入一个合法的FTP服务器地址\n");
+			MainFrame.this.printer_ta.append(StringTable.logInvalidServer);
 			return;
 		}
 		if (user_str.length() == 0)
 		{
-			user_str = "anonymous";
+			user_str = StringTable.defaultUsername;
 		}
 		if (pass_str.length() == 0)
 		{
-			pass_str = "anonymous";
+			pass_str = StringTable.defaultPassword;
 		}
 		if (port_str.length() == 0)
 		{
-			port_str = "21";
-			port = 21;
+			port_str = StringTable.defaultPort;
+			port = StringTable.defaultPortInt;
 		}
 		else
 		{
@@ -1353,16 +1352,16 @@ public class MainFrame extends JFrame
 			}
 			catch (Exception e)
 			{
-				port_str = "21";
-				port = 21;
+				port_str = StringTable.defaultPort;
+				port = StringTable.defaultPortInt;
 			}
 		}
-		
+
 		try
 		{
 			if (jw != null)
 			{
-				jw.close();	
+				jw.close();
 				jw.interrupt();
 				try
 				{
@@ -1381,4 +1380,4 @@ public class MainFrame extends JFrame
 		{
 		}
 	}
-} 
+}
