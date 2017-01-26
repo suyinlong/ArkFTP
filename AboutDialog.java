@@ -67,7 +67,10 @@ public class AboutDialog extends JDialog
 	}
 	public void StartAnimation()
 	{
+        this.setLocation(DialogX, DialogY);
+        /*
 		Playtime = 0;
+        this.setLocation( - DialogW, - DialogH);
 		AnimationTimer = new Timer(10, new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
@@ -81,6 +84,8 @@ public class AboutDialog extends JDialog
 		AnimationTimer.setInitialDelay(0);
 		AnimationTimer.setCoalesce(true);
 		AnimationTimer.start();
+        */
+
 	}
 
 }

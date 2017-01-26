@@ -35,7 +35,6 @@ public class MainFrame extends JFrame
 	final int HEIGHT;
 	final int WIDTH;
 
-	public Font MainFrameFont = null;
 	// set default font, color, version info
 
 	private ArkFTPWorker jw;
@@ -445,6 +444,7 @@ public class MainFrame extends JFrame
 		 * message between server and client
 		 * */
 		printer_ta = new JTextArea(0, 40);
+		printer_ta.setFont(ResourceTable.fontLog);
 		printer_ta.setEditable(false);
 		printer_ta.setBackground(ResourceTable.colorLogBackground);
 		JScrollPane printer_scroll = new JScrollPane(printer_ta);
@@ -1065,22 +1065,13 @@ public class MainFrame extends JFrame
 
 	public MainFrame()
 	{
-		boolean LoadFont = true;
-		try
-		{
-			//MainFrameFont = Font.createFont(0, new File("ArkFTP/res/YuanTi.ttf"));
-			//MainFrameFont = MainFrameFont.deriveFont(12.0F);
-			MainFrameFont = new Font(ResourceTable.fontName, Font.PLAIN, 12);
-		}
-		catch (Exception e)
-		{
-			LoadFont = false;
-			JOptionPane.showMessageDialog(MainFrame.this, StringTable.loadFontErrorText);
-		}
-		if (LoadFont == true)
+		ResourceTable.loadFontMainFrame();
+		ResourceTable.loadFontLog();
+
+		if (ResourceTable.fontMainFrame != null)
 		{
 			// if load font, set global font
-			FontUIResource fontRes = new FontUIResource(MainFrameFont);
+			FontUIResource fontRes = new FontUIResource(ResourceTable.fontMainFrame);
 			for (Enumeration keys = UIManager.getDefaults().keys(); keys.hasMoreElements();)
 			{
 	        	Object key = keys.nextElement();

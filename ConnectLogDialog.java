@@ -37,6 +37,7 @@ public class ConnectLogDialog extends JDialog
 		TitlePanel.add(CLDInfo);
 
 		ConnectLogJTA = new JTextArea();
+		ConnectLogJTA.setFont(ResourceTable.fontLog);
 		UpdateInfo(parent);
 		ConnectLogJTA.setBackground(ResourceTable.colorDialogBackground);
 		ConnectLogJTA.setRows(10);

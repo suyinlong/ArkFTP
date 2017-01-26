@@ -2,7 +2,7 @@
 * @Author: Yinlong Su
 * @Date:   2017-01-25 09:12:32
 * @Last Modified by:   Yinlong Su
-* @Last Modified time: 2017-01-25 16:16:23
+* @Last Modified time: 2017-01-25 20:13:07
 */
 
 package ArkFTP.bin.ui;
@@ -11,7 +11,11 @@ import java.awt.*;
 
 public class ResourceTable {
 
-    public final static String fontName = "Dialog";
+    public static Font fontMainFrame;
+    public static Font fontLog;
+
+    public final static String fontMainFrameName = "Dialog";
+    public final static String fontLogName = "Consolas";
 
     public final static String cursorName = "Arror";
     public final static String cursorPath = "ArkFTP/res/Arrow.png";
@@ -73,4 +77,33 @@ public class ResourceTable {
     public final static String iconDialogConnectionLogButtonCopyLog = "ArkFTP/res/CopyLog.png";
     public final static String iconDialogConnectionLogButtonSaveLog = "ArkFTP/res/SaveLog.png";
 
+    public static void loadFontMainFrame() {
+        Font _fontMainFrame = null;
+        boolean loadFont = true;
+        try {
+            _fontMainFrame = new Font(ResourceTable.fontMainFrameName, Font.PLAIN, 12);
+        }
+        catch (Exception e) {
+            loadFont = false;
+        }
+        if (loadFont == true)
+            fontMainFrame = _fontMainFrame;
+        else
+            fontMainFrame = null;
+    }
+
+    public static void loadFontLog() {
+        Font _fontLog = null;
+        boolean loadFont = true;
+        try {
+            _fontLog = new Font(ResourceTable.fontLogName, Font.PLAIN, 12);
+        }
+        catch (Exception e) {
+            loadFont = false;
+        }
+        if (loadFont == true)
+            fontLog = _fontLog;
+        else
+            fontLog = null;
+    }
 }
